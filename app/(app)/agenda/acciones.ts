@@ -2,9 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import type { PoolClient } from "pg";
-import { transaccion } from "@/lib/db/pool";
+import { query, transaccion } from "@/lib/db/pool";
 import { usuarioActual } from "@/lib/auth";
-import { obtenerTurno } from "@/lib/data";
+import { obtenerHorarios, obtenerTurno } from "@/lib/data";
+import { errorDeHorario } from "@/lib/horarios";
 import { botConectado } from "@/lib/data-whatsapp";
 import { getRedis } from "@/lib/db/redis";
 import { numeroWhatsapp } from "@/lib/recordatorios";
@@ -81,6 +82,32 @@ function leerHorario(formData: FormData): Horario | { error: string } {
   return { fecha, hora, duracion };
 }
 
+/**
+ * El turno tiene que entrar en el horario de atención del profesional (o en el
+ * general). Devuelve el mensaje de error, o `null` si está bien.
+ */
+async function validarHorarioAtencion(
+  horario: Horario,
+  profesionalId: string | null,
+  servicioId: string | null,
+): Promise<string | null> {
+  const [franjas, filas] = await Promise.all([
+    obtenerHorarios(),
+    query<{ profesional: string | null; lugar_id: string | null }>(
+      `select (select nombre from profesionales where id = $1) as profesional,
+              (select lugar_id from servicios where id = $2) as lugar_id`,
+      [profesionalId, servicioId],
+    ),
+  ]);
+  return errorDeHorario({
+    franjas,
+    profesionalId,
+    profesionalNombre: filas[0]?.profesional ?? null,
+    lugarId: filas[0]?.lugar_id ?? null,
+    ...horario,
+  });
+}
+
 async function registrarEvento(
   cliente: PoolClient,
   turnoId: string,
@@ -116,6 +143,9 @@ export async function crearTurno(
   }
 
   try {
+    const fueraDeHorario = await validarHorarioAtencion(horario, profesionalId, servicioId);
+    if (fueraDeHorario) return { ok: false, error: fueraDeHorario };
+
     await transaccion(async (cliente) => {
       const { rows } = await cliente.query<{ id: string }>(
         `insert into turnos (paciente_id, profesional_id, servicio_id, inicio, fin, nota)
@@ -162,6 +192,13 @@ export async function reprogramarTurno(
   }
 
   try {
+    const fueraDeHorario = await validarHorarioAtencion(
+      horario,
+      profesionalId,
+      anterior.servicioId,
+    );
+    if (fueraDeHorario) return { ok: false, error: fueraDeHorario };
+
     await transaccion(async (cliente) => {
       await cliente.query(
         `update turnos

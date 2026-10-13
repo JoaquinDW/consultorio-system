@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { FormularioDialogo } from "@/components/app/formulario-dialogo";
@@ -10,14 +11,22 @@ import {
   FilaCampos,
 } from "@/components/app/campos-formulario";
 import { ESTADO_INICIAL } from "@/lib/acciones/estado";
-import { DURACIONES_TURNO, ZONAS_HORARIAS } from "@/lib/labels";
-import type { Consultorio, Lugar, Profesional } from "@/lib/types";
+import { DIAS_SEMANA } from "@/lib/horarios";
+import {
+  DURACIONES_TURNO,
+  SIN_LUGAR,
+  SIN_PROFESIONAL,
+  ZONAS_HORARIAS,
+} from "@/lib/labels";
+import type { Consultorio, FranjaHorario, Lugar, Profesional } from "@/lib/types";
 import {
   actualizarConsultorio,
   cambiarActivoLugar,
   cambiarActivoProfesional,
+  crearHorarios,
   crearLugar,
   crearProfesional,
+  eliminarHorario,
 } from "./acciones";
 import { cambiarRecordatoriosAutomaticos } from "../whatsapp/acciones";
 
@@ -173,6 +182,99 @@ export function CambiarActivoLugar({ lugar }: { lugar: Lugar }) {
   return (
     <Button variant="outline" size="sm" onClick={cambiar} disabled={pendiente}>
       {lugar.activo ? "Desactivar" : "Activar"}
+    </Button>
+  );
+}
+
+export function NuevoHorario({
+  profesionales,
+  lugares,
+}: {
+  profesionales: Profesional[];
+  lugares: Lugar[];
+}) {
+  return (
+    <FormularioDialogo
+      titulo="Nuevo horario de atención"
+      descripcion="Fuera de estos horarios no se pueden dar turnos. Para cortar al mediodía, cargá dos franjas (mañana y tarde)."
+      textoDisparador="Agregar horario"
+      textoGuardar="Agregar"
+      accion={crearHorarios}
+      alGuardar={() => toast.success("Horario agregado.")}
+    >
+      <fieldset className="flex flex-col gap-1.5">
+        <legend className="text-sm leading-none font-medium">
+          Días<span className="text-destructive">*</span>
+        </legend>
+        <div className="flex flex-wrap gap-1.5">
+          {DIAS_SEMANA.map((d) => (
+            <label
+              key={d.valor}
+              className="flex cursor-pointer items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-sm has-checked:border-primary has-checked:bg-primary/5"
+            >
+              <input
+                type="checkbox"
+                name="dias"
+                value={d.valor}
+                defaultChecked={d.valor <= 5}
+                className="size-3.5 accent-primary"
+              />
+              {d.corta}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <FilaCampos>
+        <CampoTexto nombre="desde" etiqueta="Desde" type="time" step={300} requerido defaultValue="09:00" />
+        <CampoTexto nombre="hasta" etiqueta="Hasta" type="time" step={300} requerido defaultValue="13:00" />
+      </FilaCampos>
+      {profesionales.length > 0 && (
+        <CampoSelect
+          nombre="profesional_id"
+          etiqueta="De quién"
+          defaultValue={SIN_PROFESIONAL}
+          opciones={[
+            { valor: SIN_PROFESIONAL, etiqueta: "Horario general del consultorio" },
+            ...profesionales.map((p) => ({ valor: p.id, etiqueta: p.nombre })),
+          ]}
+        />
+      )}
+      {lugares.length > 0 && (
+        <CampoSelect
+          nombre="lugar_id"
+          etiqueta="Dónde (opcional)"
+          defaultValue={SIN_LUGAR}
+          opciones={[
+            { valor: SIN_LUGAR, etiqueta: "Cualquier lugar" },
+            ...lugares.map((l) => ({ valor: l.id, etiqueta: l.nombre })),
+          ]}
+        />
+      )}
+    </FormularioDialogo>
+  );
+}
+
+export function EliminarHorario({ franja }: { franja: FranjaHorario }) {
+  const [pendiente, iniciarTransicion] = useTransition();
+
+  function eliminar() {
+    iniciarTransicion(async () => {
+      const resultado = await eliminarHorario(franja.id);
+      if (resultado.ok) toast.success("Horario borrado.");
+      else toast.error(resultado.error);
+    });
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      onClick={eliminar}
+      disabled={pendiente}
+      aria-label={`Borrar ${franja.desde}–${franja.hasta}`}
+      title="Borrar"
+    >
+      <X />
     </Button>
   );
 }

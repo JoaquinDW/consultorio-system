@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPin, Stethoscope } from "lucide-react";
+import { Clock, MapPin, Stethoscope } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -10,7 +10,14 @@ import {
 } from "@/components/ui/card";
 import { EstadoVacio } from "@/components/app/estado-vacio";
 import { usuarioActual } from "@/lib/auth";
-import { obtenerConsultorio, obtenerLugares, obtenerProfesionales } from "@/lib/data";
+import {
+  obtenerConsultorio,
+  obtenerHorarios,
+  obtenerLugares,
+  obtenerProfesionales,
+} from "@/lib/data";
+import { DIAS_SEMANA } from "@/lib/horarios";
+import type { FranjaHorario } from "@/lib/types";
 import {
   obtenerEstadoConexionWa,
   obtenerRecordatoriosAutomaticos,
@@ -19,7 +26,9 @@ import { ESTADOS_CONEXION_WA } from "@/lib/labels";
 import {
   CambiarActivoLugar,
   CambiarActivoProfesional,
+  EliminarHorario,
   FormularioConsultorio,
+  NuevoHorario,
   NuevoLugar,
   NuevoProfesional,
   ToggleRecordatoriosAutomaticos,
@@ -28,11 +37,12 @@ import {
 export const metadata = { title: "Configuración" };
 
 export default async function ConfiguracionPage() {
-  const [usuario, consultorio, profesionales, lugares, estadoWa, automaticos] = await Promise.all([
+  const [usuario, consultorio, profesionales, lugares, horarios, estadoWa, automaticos] = await Promise.all([
     usuarioActual(),
     obtenerConsultorio(),
     obtenerProfesionales({ incluirInactivos: true }),
     obtenerLugares({ incluirInactivos: true }),
+    obtenerHorarios(),
     obtenerEstadoConexionWa(),
     obtenerRecordatoriosAutomaticos(),
   ]);
@@ -45,7 +55,7 @@ export default async function ConfiguracionPage() {
         <h2 className="font-heading text-2xl font-semibold tracking-tight">Configuración</h2>
         <p className="text-sm text-muted-foreground">
           {esAdmin
-            ? "Datos del consultorio, zona horaria, recordatorios, profesionales y lugares."
+            ? "Datos del consultorio, horarios de atención, recordatorios, profesionales y lugares."
             : "Solo quien administra el consultorio puede cambiar estos datos."}
         </p>
       </div>
@@ -99,6 +109,68 @@ export default async function ConfiguracionPage() {
                       </Badge>
                     )}
                     {esAdmin && <CambiarActivoProfesional profesional={p} />}
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
+            <div className="flex flex-col gap-1">
+              <CardTitle className="text-base">Horarios de atención</CardTitle>
+              <CardDescription>
+                Fuera de estos horarios la agenda no deja dar ni reprogramar
+                turnos. Un profesional con horario propio atiende solo en ese;
+                el resto usa el general.
+              </CardDescription>
+            </div>
+            {esAdmin && (
+              <NuevoHorario
+                profesionales={profesionales.filter((p) => p.activo)}
+                lugares={lugares.filter((l) => l.activo)}
+              />
+            )}
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            {horarios.length === 0 ? (
+              <EstadoVacio
+                icono={Clock}
+                titulo="No hay horarios cargados"
+                descripcion="Mientras no cargues ninguno, se pueden dar turnos a cualquier hora y cualquier día."
+              />
+            ) : (
+              agruparHorarios(horarios).map((grupo) => (
+                <div key={grupo.clave} className="rounded-lg border p-3">
+                  <p className="mb-2 font-medium">{grupo.titulo}</p>
+                  <div className="flex flex-col gap-1">
+                    {DIAS_SEMANA.map((d) => {
+                      const delDia = grupo.franjas.filter((f) => f.diaSemana === d.valor);
+                      return (
+                        <div key={d.valor} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                          <span className="w-20 shrink-0 text-muted-foreground">{d.etiqueta}</span>
+                          {delDia.length === 0 ? (
+                            <span className="text-muted-foreground">No atiende</span>
+                          ) : (
+                            delDia.map((f) => (
+                              <span
+                                key={f.id}
+                                className="flex items-center gap-0.5 rounded-md bg-muted py-0.5 pr-0.5 pl-2 tabular-nums"
+                              >
+                                {f.desde}–{f.hasta}
+                                {f.lugarNombre && (
+                                  <span className="text-xs text-muted-foreground">
+                                    &nbsp;· {f.lugarNombre}
+                                  </span>
+                                )}
+                                {esAdmin ? <EliminarHorario franja={f} /> : <span className="w-1.5" />}
+                              </span>
+                            ))
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ))
@@ -178,5 +250,24 @@ export default async function ConfiguracionPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+/** General primero, después cada profesional con horario propio. */
+function agruparHorarios(horarios: FranjaHorario[]) {
+  const grupos = new Map<string, { clave: string; titulo: string; franjas: FranjaHorario[] }>();
+  for (const f of horarios) {
+    const clave = f.profesionalId ?? "general";
+    if (!grupos.has(clave)) {
+      grupos.set(clave, {
+        clave,
+        titulo: f.profesionalNombre ?? "Horario general del consultorio",
+        franjas: [],
+      });
+    }
+    grupos.get(clave)!.franjas.push(f);
+  }
+  return [...grupos.values()].sort((a, b) =>
+    a.clave === "general" ? -1 : b.clave === "general" ? 1 : a.titulo.localeCompare(b.titulo),
   );
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, ChevronLeft, ChevronRight, Globe } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EstadoVacio } from "@/components/app/estado-vacio";
@@ -7,6 +7,7 @@ import { TarjetaTurno } from "@/components/turnos/tarjeta-turno";
 import { NuevoTurno } from "@/components/turnos/formulario-turno";
 import {
   obtenerConsultorio,
+  obtenerHorarios,
   obtenerPacientes,
   obtenerProfesionales,
   obtenerServicios,
@@ -22,6 +23,7 @@ import {
   rangoSemana,
   sumarDias,
 } from "@/lib/fechas";
+import { franjasDelDia, franjasQueRigen, textoFranjas } from "@/lib/horarios";
 import { cn } from "@/lib/utils";
 import type { Turno } from "@/lib/types";
 
@@ -47,10 +49,11 @@ export default async function AgendaPage({
   const fecha = fechaParam && esFechaValida(fechaParam) ? fechaParam : hoy;
   const profesionalParam = primero(params.profesional) ?? null;
 
-  const [profesionales, pacientes, servicios] = await Promise.all([
+  const [profesionales, pacientes, servicios, horarios] = await Promise.all([
     obtenerProfesionales(),
     obtenerPacientes(),
     obtenerServicios(),
+    obtenerHorarios(),
   ]);
   const profesionalId =
     profesionalParam && profesionales.some((p) => p.id === profesionalParam)
@@ -77,6 +80,15 @@ export default async function AgendaPage({
     return qs ? `/agenda?${qs}` : "/agenda";
   }
 
+  // Horario del profesional filtrado (o el general con "Todos"). Sin horarios
+  // cargados no se muestra nada.
+  const rigen = franjasQueRigen(horarios, profesionalId);
+  function atencion(dia: string, compacto = false): string | null {
+    if (!rigen) return null;
+    const delDia = franjasDelDia(rigen, dia);
+    return delDia.length > 0 ? textoFranjas(delDia, compacto) : "No se atiende";
+  }
+
   const porDia = new Map<string, Turno[]>();
   for (let i = 0; i < dias; i++) porDia.set(sumarDias(desde, i), []);
   for (const t of turnos) porDia.get(t.fecha)?.push(t);
@@ -98,6 +110,14 @@ export default async function AgendaPage({
             Horarios en {consultorio.zonaHoraria} ({desfaseZona(consultorio.zonaHoraria)})
             · {activos} {activos === 1 ? "turno activo" : "turnos activos"}
           </p>
+          {vista === "dia" && atencion(fecha) && (
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Clock className="size-3.5" aria-hidden="true" />
+              {atencion(fecha) === "No se atiende"
+                ? "No se atiende este día"
+                : `Atención ${atencion(fecha)}`}
+            </p>
+          )}
         </div>
         <NuevoTurno
           pacientes={pacientes.map((p) => ({ id: p.id, nombre: p.nombre, telefono: p.telefono }))}
@@ -215,6 +235,11 @@ export default async function AgendaPage({
                   <span className="text-xs font-medium text-primary normal-case">Hoy</span>
                 )}
               </Link>
+              {atencion(dia) && (
+                <p className="-mt-1.5 px-1 text-xs text-muted-foreground tabular-nums">
+                  {atencion(dia, true)}
+                </p>
+              )}
               {turnosDia.length === 0 ? (
                 <p className="px-1 pb-2 text-xs text-muted-foreground">Sin turnos</p>
               ) : (

@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { query } from "@/lib/db/pool";
 import { esAdministrador } from "@/lib/auth";
-import { esZonaValida } from "@/lib/fechas";
+import { esHoraValida, esZonaValida } from "@/lib/fechas";
+import { SIN_LUGAR, SIN_PROFESIONAL } from "@/lib/labels";
 import {
   aTexto,
   mensajeDeError,
@@ -121,5 +122,58 @@ export async function cambiarActivoLugar(
     return { ok: true };
   } catch (error) {
     return mensajeDeError(error, "No pudimos actualizar el lugar.");
+  }
+}
+
+/** Agrega la misma franja (desde–hasta) a cada día marcado. */
+export async function crearHorarios(
+  _prev: EstadoFormulario,
+  formData: FormData,
+): Promise<EstadoFormulario> {
+  if (!(await esAdministrador())) return SIN_PERMISO;
+
+  const dias = [...new Set(formData.getAll("dias").map(Number))].filter(
+    (d) => Number.isInteger(d) && d >= 1 && d <= 7,
+  );
+  const desde = String(formData.get("desde") ?? "");
+  const hasta = String(formData.get("hasta") ?? "");
+  const profesional = aTexto(formData.get("profesional_id"));
+  const lugar = aTexto(formData.get("lugar_id"));
+
+  if (dias.length === 0) return { ok: false, error: "Marcá al menos un día." };
+  if (!esHoraValida(desde) || !esHoraValida(hasta)) {
+    return { ok: false, error: "Elegí la hora de inicio y de fin." };
+  }
+  if (hasta <= desde) {
+    return { ok: false, error: "La hora de fin tiene que ser después de la de inicio." };
+  }
+
+  try {
+    await query(
+      `insert into horarios (dia_semana, desde, hasta, profesional_id, lugar_id)
+       select d, $2::time, $3::time, $4, $5 from unnest($1::int[]) as d`,
+      [
+        dias,
+        desde,
+        hasta,
+        profesional === SIN_PROFESIONAL ? null : profesional,
+        lugar === SIN_LUGAR ? null : lugar,
+      ],
+    );
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (error) {
+    return mensajeDeError(error, "No pudimos guardar el horario.");
+  }
+}
+
+export async function eliminarHorario(id: string): Promise<EstadoFormulario> {
+  if (!(await esAdministrador())) return SIN_PERMISO;
+  try {
+    await query("delete from horarios where id = $1", [id]);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (error) {
+    return mensajeDeError(error, "No pudimos borrar el horario.");
   }
 }

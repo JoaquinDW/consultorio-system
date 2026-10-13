@@ -6,6 +6,7 @@ import type {
   CanalRecordatorio,
   Consultorio,
   EstadoTurno,
+  FranjaHorario,
   Lugar,
   Paciente,
   Profesional,
@@ -150,6 +151,42 @@ export async function obtenerServicios({
     precioEfectivo: aNumeroONulo(f.precio_efectivo),
     precioTransferencia: aNumeroONulo(f.precio_transferencia),
     activo: f.activo,
+  }));
+}
+
+// --- Horarios de atención -------------------------------------------------
+
+interface FilaHorario {
+  id: string;
+  dia_semana: number;
+  desde: string;
+  hasta: string;
+  profesional_id: string | null;
+  profesional_nombre: string | null;
+  lugar_id: string | null;
+  lugar_nombre: string | null;
+}
+
+export async function obtenerHorarios(): Promise<FranjaHorario[]> {
+  const filas = await query<FilaHorario>(
+    `select h.id, h.dia_semana,
+            to_char(h.desde, 'HH24:MI') as desde, to_char(h.hasta, 'HH24:MI') as hasta,
+            h.profesional_id, pr.nombre as profesional_nombre,
+            h.lugar_id, l.nombre as lugar_nombre
+     from horarios h
+     left join profesionales pr on pr.id = h.profesional_id
+     left join lugares l on l.id = h.lugar_id
+     order by pr.nombre nulls first, h.dia_semana, h.desde`,
+  );
+  return filas.map((f) => ({
+    id: f.id,
+    diaSemana: f.dia_semana,
+    desde: f.desde,
+    hasta: f.hasta,
+    profesionalId: f.profesional_id,
+    profesionalNombre: f.profesional_nombre,
+    lugarId: f.lugar_id,
+    lugarNombre: f.lugar_nombre,
   }));
 }
 
