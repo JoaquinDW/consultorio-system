@@ -83,6 +83,9 @@ equipo. Detalle en `bot/README.md`.
   contestar, los pasa a Humano y los marca como pendientes de atención (punto
   rojo en la bandeja y aviso en Inicio). Los recordatorios se pueden mandar por
   el bot desde la agenda, o en forma automática si se activa en Configuración.
+  Ante un pedido de turno nuevo, el bot (con IA) pide nombre y apellido y el
+  servicio antes de derivar; si en Configuración se prende "El bot puede dar
+  turnos", busca lugar en la agenda y reserva el turno él mismo.
 - **Configuración:** nombre del consultorio, zona horaria, duración por defecto,
   anticipación del recordatorio, horarios de atención, profesionales y lugares.
 

@@ -232,7 +232,7 @@ export async function vincularPaciente(
 export interface Consultorio {
   nombre: string;
   zonaHoraria: string;
-  profesionales: { nombre: string; especialidad: string | null }[];
+  profesionales: { id: string; nombre: string; especialidad: string | null }[];
 }
 
 export async function getConsultorio(): Promise<Consultorio> {
@@ -240,8 +240,8 @@ export async function getConsultorio(): Promise<Consultorio> {
     pool.query<{ nombre: string; zona_horaria: string }>(
       "select nombre, zona_horaria from public.consultorio where id = 1",
     ),
-    pool.query<{ nombre: string; especialidad: string | null }>(
-      "select nombre, especialidad from public.profesionales where activo order by nombre",
+    pool.query<{ id: string; nombre: string; especialidad: string | null }>(
+      "select id, nombre, especialidad from public.profesionales where activo order by nombre",
     ),
   ]);
   return {

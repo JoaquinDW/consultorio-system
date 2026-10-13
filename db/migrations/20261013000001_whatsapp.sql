@@ -61,6 +61,12 @@ create table if not exists public.wa_config (
 insert into public.wa_config (id) values (1)
 on conflict (id) do nothing;
 
+-- El bot puede dar turnos nuevos por su cuenta (con IA): pide nombre y
+-- servicio, busca lugar en la agenda y lo reserva. Apagado = toma el pedido y
+-- deriva al equipo, como siempre.
+alter table public.wa_config
+  add column if not exists agendar_turnos boolean not null default false;
+
 -- Los recordatorios ahora también los puede mandar el bot.
 alter table public.recordatorios drop constraint if exists recordatorios_canal_check;
 alter table public.recordatorios add constraint recordatorios_canal_check

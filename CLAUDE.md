@@ -13,3 +13,4 @@ para comandos y alcance.
 - No hay tests: validá con `npm run lint` y `npm run build`.
 - Bot de WhatsApp en `bot/` (paquete propio, fuera del lint y del tsconfig de la app; validalo con `cd bot && npx tsc --noEmit`). Su schema es `db/migrations/20261013000001_whatsapp.sql`, que el bot aplica al arrancar: mantenela idempotente. El panel tolera que las tablas `wa_*` no existan (`esquemaIncompleto` en `lib/data-whatsapp.ts`).
 - El texto del recordatorio está duplicado en `lib/recordatorios.ts` y `bot/src/mensajes.ts`: si cambiás uno, cambiá el otro.
+- Las reglas de horario de atención están duplicadas en `lib/horarios.ts` y `bot/src/agenda.ts` (el bot da turnos si está prendido en Configuración): si cambiás una, cambiá la otra.

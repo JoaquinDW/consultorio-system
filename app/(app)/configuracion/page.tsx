@@ -19,6 +19,7 @@ import {
 import { DIAS_SEMANA } from "@/lib/horarios";
 import type { FranjaHorario } from "@/lib/types";
 import {
+  obtenerAgendarTurnosBot,
   obtenerEstadoConexionWa,
   obtenerRecordatoriosAutomaticos,
 } from "@/lib/data-whatsapp";
@@ -31,13 +32,14 @@ import {
   NuevoHorario,
   NuevoLugar,
   NuevoProfesional,
+  ToggleAgendarTurnosBot,
   ToggleRecordatoriosAutomaticos,
 } from "./formularios";
 
 export const metadata = { title: "Configuración" };
 
 export default async function ConfiguracionPage() {
-  const [usuario, consultorio, profesionales, lugares, horarios, estadoWa, automaticos] = await Promise.all([
+  const [usuario, consultorio, profesionales, lugares, horarios, estadoWa, automaticos, agendaBot] = await Promise.all([
     usuarioActual(),
     obtenerConsultorio(),
     obtenerProfesionales({ incluirInactivos: true }),
@@ -45,6 +47,7 @@ export default async function ConfiguracionPage() {
     obtenerHorarios(),
     obtenerEstadoConexionWa(),
     obtenerRecordatoriosAutomaticos(),
+    obtenerAgendarTurnosBot(),
   ]);
   const etiquetaWa = ESTADOS_CONEXION_WA[estadoWa.estado];
   const esAdmin = usuario.rol === "administrador";
@@ -232,8 +235,9 @@ export default async function ConfiguracionPage() {
             <div className="flex flex-col gap-1">
               <CardTitle className="text-base">WhatsApp</CardTitle>
               <CardDescription>
-                El bot manda recordatorios, registra confirmaciones y te avisa
-                cuando un paciente pide cambiar un turno.{" "}
+                El bot manda recordatorios, registra confirmaciones, toma
+                pedidos de turno y te avisa cuando un paciente pide cambiar
+                uno.{" "}
                 <Link href="/whatsapp" className="underline">
                   Ver conversaciones
                 </Link>
@@ -244,8 +248,9 @@ export default async function ConfiguracionPage() {
               {estadoWa.telefono && ` · +${estadoWa.telefono}`}
             </Badge>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col gap-4">
             <ToggleRecordatoriosAutomaticos activo={automaticos} editable={esAdmin} />
+            <ToggleAgendarTurnosBot activo={agendaBot} editable={esAdmin} />
           </CardContent>
         </Card>
       </div>
