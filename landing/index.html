@@ -20,11 +20,17 @@
   whatsapp: número con código de país, solo dígitos (ej. 5493511234567).
             Número del consultorio (Corrientes).
   pixelId:  ID del píxel de Meta. Vacío = no se carga nada.
+  posthog:  key pública del proyecto de PostHog (phc_…) y host de ingesta.
+            Key vacía = no se carga nada.
 -->
 <script>
   window.TURNOS = {
     whatsapp: "5493794721825",
-    pixelId: ""
+    pixelId: "",
+    posthog: {
+      key: "phc_naqXniUtwWXVmZwkud33JHr6LkX9CP2rQfJJoavEjbuu",
+      host: "https://us.i.posthog.com"
+    }
   };
 </script>
 
@@ -40,6 +46,21 @@
     document,'script','https://connect.facebook.net/en_US/fbevents.js');
     fbq('init', id);
     fbq('track', 'PageView');
+  })();
+</script>
+
+<!-- PostHog: se carga solo si hay key. Registra las visitas ($pageview) y cada clic a WhatsApp como "whatsapp_click". -->
+<script>
+  (function () {
+    var ph = window.TURNOS && window.TURNOS.posthog;
+    if (!ph || !ph.key) return;
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog&&window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init(ph.key, {
+      api_host: ph.host || "https://us.i.posthog.com",
+      ui_host: "https://us.posthog.com",
+      defaults: "2025-05-24",
+      person_profiles: "identified_only"
+    });
   })();
 </script>
 
@@ -894,13 +915,18 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
   var cfg = window.TURNOS || {};
   var numero = String(cfg.whatsapp || "").replace(/\D/g, "");
 
-  // Links de WhatsApp: número + mensaje precargado, y evento "Contact" para Meta.
+  // Links de WhatsApp: número + mensaje precargado, evento "Contact" para Meta
+  // y "whatsapp_click" para PostHog (con el botón en "boton").
   document.querySelectorAll("[data-wa]").forEach(function (a) {
     var msg = a.getAttribute("data-wa-msg") || "";
     a.href = "https://wa.me/" + numero + (msg ? "?text=" + encodeURIComponent(msg) : "");
     a.addEventListener("click", function () {
+      var boton = a.getAttribute("data-wa-from") || "web";
       if (typeof window.fbq === "function") {
-        window.fbq("track", "Contact", { content_name: a.getAttribute("data-wa-from") || "web" });
+        window.fbq("track", "Contact", { content_name: boton });
+      }
+      if (window.posthog && typeof window.posthog.capture === "function") {
+        window.posthog.capture("whatsapp_click", { boton: boton }, { transport: "sendBeacon" });
       }
     });
   });
