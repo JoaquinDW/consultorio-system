@@ -9,7 +9,7 @@ por WhatsApp. Un solo `index.html` (CSS y JS inline) más la captura
 En `index.html`, bloque `window.TURNOS`:
 
 - `whatsapp`: número del consultorio con código de país, solo dígitos
-  (ej. `5493511234567`). **Hoy tiene un placeholder.**
+  (ej. `5493794721825`).
 - `pixelId`: ID del píxel de Meta. Vacío no carga nada. Con ID manda
   `PageView` al cargar y `Contact` en cada clic a WhatsApp (con `content_name`
   = botón: `header`, `hero`, `dock`, `faq-precio`, `cierre`).
