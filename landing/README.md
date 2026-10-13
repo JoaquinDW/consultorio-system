@@ -1,4 +1,4 @@
-# Landing de Turnos
+# Landing de SmartTurnos (smartturnos.com)
 
 Página estática para la campaña de Meta Ads. Objetivo: que la persona escriba
 por WhatsApp. Un solo `index.html` (CSS y JS inline) más la captura
