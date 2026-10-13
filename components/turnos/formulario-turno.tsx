@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { FormularioDialogo } from "@/components/app/formulario-dialogo";
 import {
@@ -11,8 +11,9 @@ import {
   FilaCampos,
 } from "@/components/app/campos-formulario";
 import { crearTurno, reprogramarTurno } from "@/app/(app)/agenda/acciones";
-import { DURACIONES_TURNO, SIN_PROFESIONAL } from "@/lib/labels";
-import type { Profesional, Turno } from "@/lib/types";
+import { DURACIONES_TURNO, SIN_PROFESIONAL, SIN_SERVICIO } from "@/lib/labels";
+import { etiquetaServicio } from "@/lib/servicios";
+import type { Profesional, Servicio, Turno } from "@/lib/types";
 
 export interface OpcionPaciente {
   id: string;
@@ -67,6 +68,7 @@ function CampoProfesional({
 export function NuevoTurno({
   pacientes,
   profesionales,
+  servicios = [],
   duracionPorDefecto,
   fechaPorDefecto,
   zonaHoraria,
@@ -75,12 +77,17 @@ export function NuevoTurno({
 }: {
   pacientes: OpcionPaciente[];
   profesionales: Profesional[];
+  /** Servicios activos: elegir uno completa la duración y el profesional. */
+  servicios?: Servicio[];
   duracionPorDefecto: number;
   fechaPorDefecto: string;
   zonaHoraria: string;
   pacienteId?: string;
   disparador?: ReactNode;
 }) {
+  const [servicioId, setServicioId] = useState(SIN_SERVICIO);
+  const servicio = servicios.find((s) => s.id === servicioId);
+
   return (
     <FormularioDialogo
       titulo="Nuevo turno"
@@ -112,6 +119,19 @@ export function NuevoTurno({
               etiqueta: `${p.nombre} · ${p.telefono}`,
             }))}
           />
+          {servicios.length > 0 && (
+            <CampoSelect
+              nombre="servicio_id"
+              etiqueta="Servicio"
+              // El diálogo se desmonta al cerrar: arranca con el último elegido.
+              defaultValue={servicioId}
+              alCambiar={setServicioId}
+              opciones={[
+                { valor: SIN_SERVICIO, etiqueta: "Sin especificar" },
+                ...servicios.map((s) => ({ valor: s.id, etiqueta: etiquetaServicio(s) })),
+              ]}
+            />
+          )}
           <FilaCampos>
             <CampoTexto
               nombre="fecha"
@@ -122,15 +142,20 @@ export function NuevoTurno({
             />
             <CampoTexto nombre="hora" etiqueta="Hora" type="time" step={300} requerido />
           </FilaCampos>
-          <FilaCampos>
+          {/* Al elegir un servicio se remontan con su duración y su profesional
+              (se pueden cambiar igual). */}
+          <FilaCampos key={servicioId}>
             <CampoSelect
               nombre="duracion"
               etiqueta="Duración"
               requerido
-              defaultValue={String(duracionPorDefecto)}
-              opciones={opcionesDuracion(duracionPorDefecto)}
+              defaultValue={String(servicio?.duracionMin ?? duracionPorDefecto)}
+              opciones={opcionesDuracion(servicio?.duracionMin ?? duracionPorDefecto)}
             />
-            <CampoProfesional profesionales={profesionales} />
+            <CampoProfesional
+              profesionales={profesionales}
+              defaultValue={servicio?.profesionalId ?? undefined}
+            />
           </FilaCampos>
           <CampoTextarea
             nombre="nota"

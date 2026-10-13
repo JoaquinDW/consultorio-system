@@ -25,6 +25,7 @@ import {
   obtenerPacientes,
   obtenerProfesionales,
   obtenerProximosTurnos,
+  obtenerServicios,
   obtenerRecordatoriosPendientes,
   obtenerTurnos,
 } from "@/lib/data";
@@ -38,13 +39,14 @@ export default async function InicioPage() {
   const hoy = hoyEn(consultorio.zonaHoraria);
   const manana = sumarDias(hoy, 1);
 
-  const [turnosHoy, proximos, recordatorios, pacientes, profesionales, chatsConAtencion] =
+  const [turnosHoy, proximos, recordatorios, pacientes, profesionales, servicios, chatsConAtencion] =
     await Promise.all([
       obtenerTurnos({ desde: hoy, hasta: manana }),
       obtenerProximosTurnos({ desde: manana, limite: 5 }),
       obtenerRecordatoriosPendientes(),
       obtenerPacientes(),
       obtenerProfesionales(),
+      obtenerServicios(),
       contarConversacionesConAtencion(),
     ]);
 
@@ -75,6 +77,7 @@ export default async function InicioPage() {
           <NuevoTurno
             pacientes={opcionesPacientes}
             profesionales={profesionales}
+            servicios={servicios}
             duracionPorDefecto={consultorio.duracionTurnoMin}
             fechaPorDefecto={hoy}
             zonaHoraria={consultorio.zonaHoraria}

@@ -48,6 +48,21 @@ const PROFESIONALES = [
   { nombre: "Lic. Pablo Ferreyra", especialidad: "Kinesiología" },
 ];
 
+const LUGARES = [
+  { nombre: "Consultorio Centro", direccion: "Av. Colón 1234, Córdoba" },
+  { nombre: "Clínica Norte", direccion: "Rafael Núñez 4500, Córdoba" },
+];
+
+// [nombre, índice de lugar (null = todos), índice de profesional (null = cualquiera),
+//  duración, precio, efectivo, transferencia]
+const SERVICIOS: [string, number | null, number | null, number, number, number | null, number | null][] = [
+  ["Consulta", null, 0, 30, 25000, 22000, null],
+  ["Limpieza dental", 0, 0, 45, 40000, 36000, 40000],
+  ["Blanqueamiento", 1, 0, 60, 120000, 108000, 115000],
+  ["Sesión de kinesiología", null, 1, 45, 18000, null, null],
+  ["Evaluación postural", 1, 1, 60, 30000, 27000, null],
+];
+
 const PACIENTES = [
   { nombre: "Ana Belén Torres", nota: "Prefiere turnos por la tarde." },
   { nombre: "Bruno Castillo", nota: null },
@@ -63,25 +78,26 @@ const PACIENTES = [
   { nombre: "Mateo Sosa", nota: null },
 ];
 
-// [día relativo a hoy, hora, duración, índice de paciente, índice de profesional, estado]
+// [día relativo a hoy, hora, duración, índice de paciente, índice de profesional, estado,
+//  índice de servicio (null = sin especificar)]
 type Estado = "pendiente" | "confirmado" | "cancelado" | "realizado";
-const TURNOS: [number, string, number, number, number, Estado][] = [
-  [-2, "10:00", 30, 6, 0, "realizado"],
-  [-1, "11:30", 45, 7, 1, "realizado"],
-  [-1, "16:00", 30, 8, 0, "cancelado"],
-  [0, "09:00", 30, 0, 0, "realizado"],
-  [0, "10:00", 30, 1, 0, "confirmado"],
-  [0, "11:00", 45, 2, 1, "pendiente"],
-  [0, "15:30", 30, 3, 0, "pendiente"],
-  [0, "17:00", 60, 4, 1, "confirmado"],
-  [1, "09:30", 30, 5, 0, "pendiente"],
-  [1, "10:00", 45, 9, 1, "confirmado"],
-  [1, "12:00", 30, 10, 0, "pendiente"],
-  [2, "14:00", 30, 11, 0, "pendiente"],
-  [3, "09:00", 45, 6, 1, "pendiente"],
-  [4, "16:30", 30, 2, 0, "pendiente"],
-  [6, "10:30", 30, 1, 1, "pendiente"],
-  [8, "11:00", 30, 0, 0, "pendiente"],
+const TURNOS: [number, string, number, number, number, Estado, number | null][] = [
+  [-2, "10:00", 30, 6, 0, "realizado", 0],
+  [-1, "11:30", 45, 7, 1, "realizado", 3],
+  [-1, "16:00", 30, 8, 0, "cancelado", null],
+  [0, "09:00", 30, 0, 0, "realizado", 0],
+  [0, "10:00", 30, 1, 0, "confirmado", 0],
+  [0, "11:00", 45, 2, 1, "pendiente", 3],
+  [0, "15:30", 30, 3, 0, "pendiente", null],
+  [0, "17:00", 60, 4, 1, "confirmado", 4],
+  [1, "09:30", 30, 5, 0, "pendiente", 0],
+  [1, "10:00", 45, 9, 1, "confirmado", 3],
+  [1, "12:00", 30, 10, 0, "pendiente", null],
+  [2, "14:00", 30, 11, 0, "pendiente", 0],
+  [3, "09:00", 45, 6, 1, "pendiente", 3],
+  [4, "16:30", 30, 2, 0, "pendiente", null],
+  [6, "10:30", 30, 1, 1, "pendiente", null],
+  [8, "11:00", 30, 0, 0, "pendiente", 0],
 ];
 
 async function main() {
@@ -92,7 +108,7 @@ async function main() {
   try {
     await db.query("begin");
     await db.query(
-      "truncate recordatorios, eventos_turno, turnos, pacientes, profesionales, perfiles cascade",
+      "truncate recordatorios, eventos_turno, turnos, servicios, lugares, pacientes, profesionales, perfiles cascade",
     );
     await db.query(
       `update consultorio
@@ -120,6 +136,34 @@ async function main() {
       idsProfesionales.push(rows[0].id);
     }
 
+    const idsLugares: string[] = [];
+    for (const l of LUGARES) {
+      const { rows } = await db.query<{ id: string }>(
+        `insert into lugares (nombre, direccion) values ($1, $2) returning id`,
+        [l.nombre, l.direccion],
+      );
+      idsLugares.push(rows[0].id);
+    }
+
+    const idsServicios: string[] = [];
+    for (const [nombre, iLugar, iProf, duracion, precio, efectivo, transferencia] of SERVICIOS) {
+      const { rows } = await db.query<{ id: string }>(
+        `insert into servicios
+           (nombre, lugar_id, profesional_id, duracion_min, precio, precio_efectivo, precio_transferencia)
+         values ($1, $2, $3, $4, $5, $6, $7) returning id`,
+        [
+          nombre,
+          iLugar === null ? null : idsLugares[iLugar],
+          iProf === null ? null : idsProfesionales[iProf],
+          duracion,
+          precio,
+          efectivo,
+          transferencia,
+        ],
+      );
+      idsServicios.push(rows[0].id);
+    }
+
     const idsPacientes: string[] = [];
     for (const [i, p] of PACIENTES.entries()) {
       const sufijo = String(i + 1).padStart(2, "0");
@@ -139,7 +183,7 @@ async function main() {
       `insert into pacientes (nombre, telefono, archivado) values ('Rodrigo Funes', '+54 9 351 555-0199', true)`,
     );
 
-    for (const [dia, hora, duracion, iPac, iProf, estado] of TURNOS) {
+    for (const [dia, hora, duracion, iPac, iProf, estado, iServ] of TURNOS) {
       const { rows } = await db.query<{ id: string }>(
         `with c as (select zona_horaria from consultorio where id = 1),
               i as (
@@ -147,10 +191,18 @@ async function main() {
                         at time zone c.zona_horaria) as inicio
                 from c
               )
-         insert into turnos (paciente_id, profesional_id, inicio, fin, estado)
-         select $3, $4, i.inicio, i.inicio + make_interval(mins => $5), $6::estado_turno from i
+         insert into turnos (paciente_id, profesional_id, servicio_id, inicio, fin, estado)
+         select $3, $4, $7, i.inicio, i.inicio + make_interval(mins => $5), $6::estado_turno from i
          returning id`,
-        [dia, hora, idsPacientes[iPac], idsProfesionales[iProf], duracion, estado],
+        [
+          dia,
+          hora,
+          idsPacientes[iPac],
+          idsProfesionales[iProf],
+          duracion,
+          estado,
+          iServ === null ? null : idsServicios[iServ],
+        ],
       );
       await db.query(
         `insert into eventos_turno (turno_id, tipo, descripcion, actor) values ($1, 'creado', 'Turno agendado (seed)', 'Seed')`,

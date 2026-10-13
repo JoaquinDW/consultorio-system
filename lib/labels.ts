@@ -59,6 +59,10 @@ export const DURACIONES_TURNO = [10, 15, 20, 30, 40, 45, 60, 90, 120];
 /** Valor del select para "sin profesional" (Radix no admite items con value ""). */
 export const SIN_PROFESIONAL = "__ninguno";
 
+/** Ídem para "en todos los lugares" y "sin servicio". */
+export const SIN_LUGAR = "__ninguno";
+export const SIN_SERVICIO = "__ninguno";
+
 export const ESTADOS_CONEXION_WA: Record<
   EstadoConexionWa,
   { etiqueta: string; className: string }

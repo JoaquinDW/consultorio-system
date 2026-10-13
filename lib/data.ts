@@ -6,9 +6,11 @@ import type {
   CanalRecordatorio,
   Consultorio,
   EstadoTurno,
+  Lugar,
   Paciente,
   Profesional,
   RecordatorioEnviado,
+  Servicio,
   Turno,
 } from "./types";
 
@@ -76,6 +78,79 @@ export async function obtenerProfesionales({
      order by activo desc, nombre`,
   );
   return filas.map(mapearProfesional);
+}
+
+// --- Lugares y servicios -------------------------------------------------
+
+interface FilaLugar {
+  id: string;
+  nombre: string;
+  direccion: string | null;
+  activo: boolean;
+}
+
+export async function obtenerLugares({
+  incluirInactivos = false,
+}: { incluirInactivos?: boolean } = {}): Promise<Lugar[]> {
+  const filas = await query<FilaLugar>(
+    `select id, nombre, direccion, activo from lugares
+     ${incluirInactivos ? "" : "where activo"}
+     order by activo desc, nombre`,
+  );
+  return filas.map((f) => ({ ...f }));
+}
+
+interface FilaServicio {
+  id: string;
+  nombre: string;
+  lugar_id: string | null;
+  lugar_nombre: string | null;
+  profesional_id: string | null;
+  profesional_nombre: string | null;
+  duracion_min: number;
+  precio: string;
+  precio_efectivo: string | null;
+  precio_transferencia: string | null;
+  activo: boolean;
+}
+
+function aNumeroONulo(valor: string | null): number | null {
+  return valor === null ? null : Number(valor);
+}
+
+/**
+ * Servicios, opcionalmente de un lugar: incluye los que se ofrecen en todos
+ * los lugares (`lugar_id` nulo).
+ */
+export async function obtenerServicios({
+  incluirInactivos = false,
+  lugarId = null,
+}: { incluirInactivos?: boolean; lugarId?: string | null } = {}): Promise<Servicio[]> {
+  const filas = await query<FilaServicio>(
+    `select s.id, s.nombre, s.lugar_id, l.nombre as lugar_nombre,
+            s.profesional_id, pr.nombre as profesional_nombre,
+            s.duracion_min, s.precio, s.precio_efectivo, s.precio_transferencia, s.activo
+     from servicios s
+     left join lugares l on l.id = s.lugar_id
+     left join profesionales pr on pr.id = s.profesional_id
+     where ($1 or s.activo)
+       and ($2::uuid is null or s.lugar_id is null or s.lugar_id = $2::uuid)
+     order by s.activo desc, l.nombre nulls first, s.nombre`,
+    [incluirInactivos, lugarId],
+  );
+  return filas.map((f) => ({
+    id: f.id,
+    nombre: f.nombre,
+    lugarId: f.lugar_id,
+    lugarNombre: f.lugar_nombre,
+    profesionalId: f.profesional_id,
+    profesionalNombre: f.profesional_nombre,
+    duracionMin: f.duracion_min,
+    precio: Number(f.precio),
+    precioEfectivo: aNumeroONulo(f.precio_efectivo),
+    precioTransferencia: aNumeroONulo(f.precio_transferencia),
+    activo: f.activo,
+  }));
 }
 
 // --- Pacientes -------------------------------------------------------------
@@ -158,6 +233,8 @@ interface FilaTurno {
   paciente_telefono: string;
   profesional_id: string | null;
   profesional_nombre: string | null;
+  servicio_id: string | null;
+  servicio_nombre: string | null;
   consultorio_nombre: string;
   fecha: string;
   hora: string;
@@ -177,6 +254,7 @@ interface FilaTurno {
 const SELECT_TURNOS = `
   select t.id, t.paciente_id, p.nombre as paciente_nombre, p.telefono as paciente_telefono,
          t.profesional_id, pr.nombre as profesional_nombre,
+         t.servicio_id, s.nombre as servicio_nombre,
          c.nombre as consultorio_nombre,
          to_char(t.inicio at time zone c.zona_horaria, 'YYYY-MM-DD') as fecha,
          to_char(t.inicio at time zone c.zona_horaria, 'HH24:MI') as hora,
@@ -190,6 +268,7 @@ const SELECT_TURNOS = `
   ) c
   join pacientes p on p.id = t.paciente_id
   left join profesionales pr on pr.id = t.profesional_id
+  left join servicios s on s.id = t.servicio_id
   left join recordatorios r on r.turno_id = t.id and r.turno_inicio = t.inicio
 `;
 
@@ -201,6 +280,8 @@ function mapearTurno(f: FilaTurno): Turno {
     pacienteTelefono: f.paciente_telefono,
     profesionalId: f.profesional_id,
     profesionalNombre: f.profesional_nombre,
+    servicioId: f.servicio_id,
+    servicioNombre: f.servicio_nombre,
     fecha: f.fecha,
     hora: f.hora,
     horaFin: f.hora_fin,

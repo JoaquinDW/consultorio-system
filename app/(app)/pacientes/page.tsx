@@ -23,6 +23,7 @@ import {
   obtenerConsultorio,
   obtenerPacientes,
   obtenerProfesionales,
+  obtenerServicios,
 } from "@/lib/data";
 import { fechaCorta, hoyEn } from "@/lib/fechas";
 import { cn } from "@/lib/utils";
@@ -42,11 +43,12 @@ export default async function PacientesPage({
   const busqueda = primero(params.q).trim();
   const archivados = primero(params.archivados) === "1";
 
-  const [pacientes, totalActivos, consultorio, profesionales] = await Promise.all([
+  const [pacientes, totalActivos, consultorio, profesionales, servicios] = await Promise.all([
     obtenerPacientes({ busqueda, archivados }),
     contarPacientesActivos(),
     obtenerConsultorio(),
     obtenerProfesionales(),
+    obtenerServicios(),
   ]);
   const hoy = hoyEn(consultorio.zonaHoraria);
 
@@ -173,6 +175,7 @@ export default async function PacientesPage({
                               // Turno para este paciente: no hace falta mandar la lista entera.
                               pacientes={[{ id: p.id, nombre: p.nombre, telefono: p.telefono }]}
                               profesionales={profesionales}
+                              servicios={servicios}
                               duracionPorDefecto={consultorio.duracionTurnoMin}
                               fechaPorDefecto={hoy}
                               zonaHoraria={consultorio.zonaHoraria}

@@ -6,6 +6,7 @@ import {
   CalendarClock,
   Check,
   CheckCheck,
+  HandCoins,
   MoreHorizontal,
   Phone,
   RotateCcw,
@@ -112,6 +113,12 @@ export function TarjetaTurno({
             <span className="flex items-center gap-1">
               <Phone className="size-3" aria-hidden="true" />
               {turno.pacienteTelefono}
+            </span>
+          )}
+          {turno.servicioNombre && (
+            <span className="flex items-center gap-1">
+              <HandCoins className="size-3" aria-hidden="true" />
+              {turno.servicioNombre}
             </span>
           )}
           {turno.profesionalNombre && (

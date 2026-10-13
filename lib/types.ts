@@ -18,6 +18,32 @@ export interface Profesional {
   activo: boolean;
 }
 
+export interface Lugar {
+  id: string;
+  nombre: string;
+  direccion: string | null;
+  activo: boolean;
+}
+
+/**
+ * Servicio que ofrece el consultorio. `lugarId`/`profesionalId` nulos = en
+ * todos los lugares / con cualquier profesional. Los precios diferenciados
+ * nulos significan que se cobra el de lista.
+ */
+export interface Servicio {
+  id: string;
+  nombre: string;
+  lugarId: string | null;
+  lugarNombre: string | null;
+  profesionalId: string | null;
+  profesionalNombre: string | null;
+  duracionMin: number;
+  precio: number;
+  precioEfectivo: number | null;
+  precioTransferencia: number | null;
+  activo: boolean;
+}
+
 export interface Paciente {
   id: string;
   nombre: string;
@@ -41,6 +67,8 @@ export interface Turno {
   pacienteTelefono: string;
   profesionalId: string | null;
   profesionalNombre: string | null;
+  servicioId: string | null;
+  servicioNombre: string | null;
   fecha: string;
   hora: string;
   horaFin: string;

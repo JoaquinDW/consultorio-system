@@ -1,6 +1,7 @@
 import {
   BellRing,
   CalendarDays,
+  HandCoins,
   House,
   MessageCircle,
   Settings,
@@ -25,6 +26,7 @@ export const SECCIONES_NAV: SeccionNav[] = [
       { titulo: "Inicio", href: "/inicio", icono: House },
       { titulo: "Agenda", href: "/agenda", icono: CalendarDays },
       { titulo: "Pacientes", href: "/pacientes", icono: Users },
+      { titulo: "Servicios", href: "/servicios", icono: HandCoins },
       { titulo: "Recordatorios", href: "/recordatorios", icono: BellRing },
       { titulo: "WhatsApp", href: "/whatsapp", icono: MessageCircle },
     ],
