@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { query } from "@/lib/db/pool";
-import { usuarioActual } from "@/lib/auth";
+import { query, transaccion } from "@/lib/db/pool";
+import { esAdministrador, usuarioActual } from "@/lib/auth";
 import {
   aTexto,
   mensajeDeError,
@@ -112,5 +112,38 @@ export async function cambiarArchivoPaciente(
     return { ok: true };
   } catch (error) {
     return mensajeDeError(error, "No pudimos actualizar el paciente.");
+  }
+}
+
+/**
+ * Eliminar sí borra, y no se puede deshacer: se van el paciente, todos sus
+ * turnos y, en cascada, el historial y los recordatorios de esos turnos. Las
+ * conversaciones de WhatsApp quedan, pero sin paciente vinculado
+ * (`on delete set null`). Para sacarlo de la vista sin perder nada está
+ * archivar. Solo lo puede hacer quien administra el consultorio.
+ */
+export async function eliminarPaciente(id: string): Promise<EstadoFormulario> {
+  if (!(await esAdministrador())) {
+    return {
+      ok: false,
+      error: "Solo quien administra el consultorio puede eliminar pacientes.",
+    };
+  }
+  try {
+    const borrado = await transaccion(async (cliente) => {
+      await cliente.query(`delete from turnos where paciente_id = $1`, [id]);
+      const resultado = await cliente.query(
+        `delete from pacientes where id = $1 returning id`,
+        [id],
+      );
+      return (resultado.rowCount ?? 0) > 0;
+    });
+    if (!borrado) return { ok: false, error: "El paciente ya no existe." };
+    revalidar();
+    revalidatePath("/recordatorios");
+    revalidatePath("/whatsapp");
+    return { ok: true };
+  } catch (error) {
+    return mensajeDeError(error, "No pudimos eliminar el paciente.");
   }
 }

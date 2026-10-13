@@ -15,8 +15,10 @@ import { EstadoVacio } from "@/components/app/estado-vacio";
 import {
   ArchivarPaciente,
   EditarPaciente,
+  EliminarPaciente,
   NuevoPaciente,
 } from "@/components/pacientes/formularios-paciente";
+import { usuarioActual } from "@/lib/auth";
 import { NuevoTurno } from "@/components/turnos/formulario-turno";
 import {
   contarPacientesActivos,
@@ -43,7 +45,8 @@ export default async function PacientesPage({
   const busqueda = primero(params.q).trim();
   const archivados = primero(params.archivados) === "1";
 
-  const [pacientes, totalActivos, consultorio, profesionales, servicios] = await Promise.all([
+  const [usuario, pacientes, totalActivos, consultorio, profesionales, servicios] = await Promise.all([
+    usuarioActual(),
     obtenerPacientes({ busqueda, archivados }),
     contarPacientesActivos(),
     obtenerConsultorio(),
@@ -51,6 +54,7 @@ export default async function PacientesPage({
     obtenerServicios(),
   ]);
   const hoy = hoyEn(consultorio.zonaHoraria);
+  const esAdmin = usuario.rol === "administrador";
 
   return (
     <div className="flex flex-col gap-5">
@@ -194,6 +198,7 @@ export default async function PacientesPage({
                           )}
                           <EditarPaciente paciente={p} />
                           <ArchivarPaciente paciente={p} />
+                          {esAdmin && <EliminarPaciente paciente={p} />}
                         </div>
                       </TableCell>
                     </TableRow>

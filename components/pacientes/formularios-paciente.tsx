@@ -1,9 +1,20 @@
 "use client";
 
 import { useTransition } from "react";
-import { Archive, ArchiveRestore, Pencil } from "lucide-react";
+import { Archive, ArchiveRestore, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { FormularioDialogo } from "@/components/app/formulario-dialogo";
 import {
   CampoTextarea,
@@ -14,6 +25,7 @@ import {
   cambiarArchivoPaciente,
   crearPaciente,
   editarPaciente,
+  eliminarPaciente,
 } from "@/app/(app)/pacientes/acciones";
 import type { Paciente } from "@/lib/types";
 
@@ -114,5 +126,54 @@ export function ArchivarPaciente({ paciente }: { paciente: Paciente }) {
     >
       {archivar ? <Archive /> : <ArchiveRestore />}
     </Button>
+  );
+}
+
+export function EliminarPaciente({ paciente }: { paciente: Paciente }) {
+  const [pendiente, iniciarTransicion] = useTransition();
+
+  function eliminar() {
+    iniciarTransicion(async () => {
+      const resultado = await eliminarPaciente(paciente.id);
+      if (resultado.ok) {
+        toast.success("Paciente eliminado.");
+      } else {
+        toast.error(resultado.error);
+      }
+    });
+  }
+
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          disabled={pendiente}
+          aria-label={`Eliminar a ${paciente.nombre}`}
+          title="Eliminar"
+          className="text-destructive hover:text-destructive"
+        >
+          <Trash2 />
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>¿Eliminar a {paciente.nombre}?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Se borran el paciente y todos sus turnos (pasados y futuros), con
+            sus recordatorios. Las conversaciones de WhatsApp quedan, pero sin
+            paciente vinculado. No se puede deshacer: si solo querés sacarlo de
+            la lista, archivalo.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" onClick={eliminar}>
+            Eliminar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
