@@ -24,6 +24,9 @@ Usuarios del seed (contraseña `turnos2026`):
 Los puertos (3001, 5433, 6381) son distintos a los de Sosa Drive para poder
 correr las dos apps a la vez. `npm run db:reset` recrea la base y re-siembra.
 
+Si ya tenías la base creada de antes, `npm run db:migrate` le aplica las
+migraciones nuevas (por ejemplo, la de servicios) sin borrar datos.
+
 La agenda funciona sin ninguna configuración externa. El bot de WhatsApp es
 opcional y se levanta aparte (ver abajo).
 
@@ -48,6 +51,14 @@ equipo. Detalle en `bot/README.md`.
 - **Turnos:** alta con paciente, fecha, hora, duración, profesional opcional y
   nota. Estados pendiente, confirmado, cancelado y realizado. Reprogramar
   (vuelve a pendiente), cancelar (con confirmación) y reactivar.
+- **Servicios:** qué se ofrece (consulta, rinomodelación, tratamiento
+  facial…), en qué lugar, con qué profesional a cargo, cuánto dura y cuánto
+  sale. Además del precio de lista, cada servicio puede tener un precio
+  distinto en efectivo y por transferencia. Los lugares (consultorios,
+  clínicas o sedes) se cargan en Configuración y son opcionales: un servicio
+  sin lugar vale en todos. Al dar un turno, elegir el servicio completa la
+  duración y el profesional, y la agenda lo muestra. Los cambia quien
+  administra; recepción los ve.
 - **Agenda:** vista de día y de semana, filtro por profesional, y la zona
   horaria visible siempre.
 - **Sin superposiciones:** lo impide la base con una exclusion constraint por
@@ -67,7 +78,7 @@ equipo. Detalle en `bot/README.md`.
   rojo en la bandeja y aviso en Inicio). Los recordatorios se pueden mandar por
   el bot desde la agenda, o en forma automática si se activa en Configuración.
 - **Configuración:** nombre del consultorio, zona horaria, duración por defecto,
-  anticipación del recordatorio y profesionales.
+  anticipación del recordatorio, profesionales y lugares.
 
 ## Arquitectura
 
@@ -81,7 +92,10 @@ directo, Redis para sesiones, Tailwind v4 + shadcn/ui.
 - `lib/recordatorios.ts` y `lib/fechas.ts`: módulos puros (mensaje, link de
   WhatsApp, aritmética de fechas).
 - `app/(app)/*/acciones.ts`: Server Actions.
-- `db/migrations/`: esquema. `scripts/seed.ts`: datos ficticios.
+- `db/migrations/`: esquema. Postgres las corre al primer init; las
+  posteriores al esquema inicial son idempotentes y `scripts/migrar.ts`
+  (`npm run db:migrate`) las vuelve a correr sobre bases existentes.
+  `scripts/seed.ts`: datos ficticios.
 - `bot/`: servicio aparte (Baileys + OpenAI opcional), portado del bot de Sosa
   Drive y adaptado a turnos. Se comunica con el panel por Postgres (tablas
   `wa_*`) y Redis (colas `wa:outbox` y `wa:control`). Al arrancar aplica la

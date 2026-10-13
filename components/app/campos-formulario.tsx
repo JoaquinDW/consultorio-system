@@ -80,6 +80,7 @@ export function CampoSelect({
   opciones,
   defaultValue,
   placeholder = "Elegí una opción",
+  alCambiar,
 }: {
   nombre: string;
   etiqueta: string;
@@ -87,10 +88,16 @@ export function CampoSelect({
   opciones: { valor: string; etiqueta: string }[];
   defaultValue?: string;
   placeholder?: string;
+  alCambiar?: (valor: string) => void;
 }) {
   return (
     <EnvoltorioCampo nombre={nombre} etiqueta={etiqueta} requerido={requerido}>
-      <Select name={nombre} defaultValue={defaultValue} required={requerido}>
+      <Select
+        name={nombre}
+        defaultValue={defaultValue}
+        required={requerido}
+        onValueChange={alCambiar}
+      >
         <SelectTrigger id={nombre} className="w-full">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>

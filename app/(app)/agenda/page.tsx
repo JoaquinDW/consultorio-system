@@ -9,6 +9,7 @@ import {
   obtenerConsultorio,
   obtenerPacientes,
   obtenerProfesionales,
+  obtenerServicios,
   obtenerTurnos,
 } from "@/lib/data";
 import {
@@ -46,9 +47,10 @@ export default async function AgendaPage({
   const fecha = fechaParam && esFechaValida(fechaParam) ? fechaParam : hoy;
   const profesionalParam = primero(params.profesional) ?? null;
 
-  const [profesionales, pacientes] = await Promise.all([
+  const [profesionales, pacientes, servicios] = await Promise.all([
     obtenerProfesionales(),
     obtenerPacientes(),
+    obtenerServicios(),
   ]);
   const profesionalId =
     profesionalParam && profesionales.some((p) => p.id === profesionalParam)
@@ -100,6 +102,7 @@ export default async function AgendaPage({
         <NuevoTurno
           pacientes={pacientes.map((p) => ({ id: p.id, nombre: p.nombre, telefono: p.telefono }))}
           profesionales={profesionales}
+          servicios={servicios}
           duracionPorDefecto={consultorio.duracionTurnoMin}
           fechaPorDefecto={fecha < hoy ? hoy : fecha}
           zonaHoraria={consultorio.zonaHoraria}

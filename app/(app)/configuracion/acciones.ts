@@ -85,3 +85,41 @@ export async function cambiarActivoProfesional(
     return mensajeDeError(error, "No pudimos actualizar el profesional.");
   }
 }
+
+export async function crearLugar(
+  _prev: EstadoFormulario,
+  formData: FormData,
+): Promise<EstadoFormulario> {
+  if (!(await esAdministrador())) return SIN_PERMISO;
+
+  const nombre = String(formData.get("nombre") ?? "").trim();
+  const direccion = aTexto(formData.get("direccion"));
+  if (!nombre) return { ok: false, error: "El nombre es obligatorio." };
+  if (nombre.length > 120) return { ok: false, error: "El nombre puede tener hasta 120 caracteres." };
+  if (direccion && direccion.length > 200) {
+    return { ok: false, error: "La dirección puede tener hasta 200 caracteres." };
+  }
+
+  try {
+    await query(`insert into lugares (nombre, direccion) values ($1, $2)`, [nombre, direccion]);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (error) {
+    return mensajeDeError(error, "No pudimos agregar el lugar.");
+  }
+}
+
+/** Desactivar no borra: sus servicios quedan, pero deja de ofrecerse al cargar uno nuevo. */
+export async function cambiarActivoLugar(
+  id: string,
+  activo: boolean,
+): Promise<EstadoFormulario> {
+  if (!(await esAdministrador())) return SIN_PERMISO;
+  try {
+    await query("update lugares set activo = $2 where id = $1", [id, activo]);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (error) {
+    return mensajeDeError(error, "No pudimos actualizar el lugar.");
+  }
+}

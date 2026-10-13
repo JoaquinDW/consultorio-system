@@ -11,10 +11,12 @@ import {
 } from "@/components/app/campos-formulario";
 import { ESTADO_INICIAL } from "@/lib/acciones/estado";
 import { DURACIONES_TURNO, ZONAS_HORARIAS } from "@/lib/labels";
-import type { Consultorio, Profesional } from "@/lib/types";
+import type { Consultorio, Lugar, Profesional } from "@/lib/types";
 import {
   actualizarConsultorio,
+  cambiarActivoLugar,
   cambiarActivoProfesional,
+  crearLugar,
   crearProfesional,
 } from "./acciones";
 import { cambiarRecordatoriosAutomaticos } from "../whatsapp/acciones";
@@ -134,6 +136,43 @@ export function CambiarActivoProfesional({ profesional }: { profesional: Profesi
   return (
     <Button variant="outline" size="sm" onClick={cambiar} disabled={pendiente}>
       {profesional.activo ? "Desactivar" : "Activar"}
+    </Button>
+  );
+}
+
+export function NuevoLugar() {
+  return (
+    <FormularioDialogo
+      titulo="Nuevo lugar"
+      descripcion="Un consultorio, clínica o sede donde atienden. Cada servicio puede tener su precio según el lugar."
+      textoDisparador="Agregar lugar"
+      textoGuardar="Agregar"
+      accion={crearLugar}
+      alGuardar={() => toast.success("Lugar agregado.")}
+    >
+      <CampoTexto nombre="nombre" etiqueta="Nombre" requerido maxLength={120} placeholder="Clínica Norte" />
+      <CampoTexto nombre="direccion" etiqueta="Dirección (opcional)" maxLength={200} />
+    </FormularioDialogo>
+  );
+}
+
+export function CambiarActivoLugar({ lugar }: { lugar: Lugar }) {
+  const [pendiente, iniciarTransicion] = useTransition();
+
+  function cambiar() {
+    iniciarTransicion(async () => {
+      const resultado = await cambiarActivoLugar(lugar.id, !lugar.activo);
+      if (resultado.ok) {
+        toast.success(lugar.activo ? "Lugar desactivado." : "Lugar activado.");
+      } else {
+        toast.error(resultado.error);
+      }
+    });
+  }
+
+  return (
+    <Button variant="outline" size="sm" onClick={cambiar} disabled={pendiente}>
+      {lugar.activo ? "Desactivar" : "Activar"}
     </Button>
   );
 }

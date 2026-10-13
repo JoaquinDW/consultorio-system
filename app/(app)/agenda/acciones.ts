@@ -14,7 +14,7 @@ import {
   mensajeDeError,
   type EstadoFormulario,
 } from "@/lib/acciones/estado";
-import { SIN_PROFESIONAL } from "@/lib/labels";
+import { SIN_PROFESIONAL, SIN_SERVICIO } from "@/lib/labels";
 import type { CanalRecordatorio, EstadoTurno } from "@/lib/types";
 
 const ESTADOS: EstadoTurno[] = ["pendiente", "confirmado", "cancelado", "realizado"];
@@ -56,6 +56,11 @@ function errorDeTurno(error: unknown, generico: string): EstadoFormulario {
 function leerProfesional(formData: FormData): string | null {
   const valor = aTexto(formData.get("profesional_id"));
   return valor === SIN_PROFESIONAL ? null : valor;
+}
+
+function leerServicio(formData: FormData): string | null {
+  const valor = aTexto(formData.get("servicio_id"));
+  return valor === SIN_SERVICIO ? null : valor;
 }
 
 interface Horario {
@@ -100,6 +105,7 @@ export async function crearTurno(
   const actor = await usuarioActual();
   const pacienteId = String(formData.get("paciente_id") ?? "");
   const profesionalId = leerProfesional(formData);
+  const servicioId = leerServicio(formData);
   const nota = aTexto(formData.get("nota"));
   const horario = leerHorario(formData);
 
@@ -112,10 +118,10 @@ export async function crearTurno(
   try {
     await transaccion(async (cliente) => {
       const { rows } = await cliente.query<{ id: string }>(
-        `insert into turnos (paciente_id, profesional_id, inicio, fin, nota)
-         values ($3, $4, ${INICIO_LOCAL}, ${INICIO_LOCAL} + make_interval(mins => $5), $6)
+        `insert into turnos (paciente_id, profesional_id, servicio_id, inicio, fin, nota)
+         values ($3, $4, $7, ${INICIO_LOCAL}, ${INICIO_LOCAL} + make_interval(mins => $5), $6)
          returning id`,
-        [horario.fecha, horario.hora, pacienteId, profesionalId, horario.duracion, nota],
+        [horario.fecha, horario.hora, pacienteId, profesionalId, horario.duracion, nota, servicioId],
       );
       await registrarEvento(
         cliente,
