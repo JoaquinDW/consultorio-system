@@ -2,6 +2,7 @@ import {
   BellRing,
   CalendarDays,
   House,
+  MessageCircle,
   Settings,
   Users,
   type LucideIcon,
@@ -25,6 +26,7 @@ export const SECCIONES_NAV: SeccionNav[] = [
       { titulo: "Agenda", href: "/agenda", icono: CalendarDays },
       { titulo: "Pacientes", href: "/pacientes", icono: Users },
       { titulo: "Recordatorios", href: "/recordatorios", icono: BellRing },
+      { titulo: "WhatsApp", href: "/whatsapp", icono: MessageCircle },
     ],
   },
 ];

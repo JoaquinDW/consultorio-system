@@ -35,6 +35,11 @@ yarn-error.log*
 !.env.example
 
 
+# sesión de Baileys y dependencias del bot de WhatsApp
+/data/
+/bot/auth/
+/bot/node_modules/
+
 # vercel
 .vercel
 

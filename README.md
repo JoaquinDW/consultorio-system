@@ -24,8 +24,21 @@ Usuarios del seed (contraseña `turnos2026`):
 Los puertos (3001, 5433, 6381) son distintos a los de Sosa Drive para poder
 correr las dos apps a la vez. `npm run db:reset` recrea la base y re-siembra.
 
-**No hace falta ninguna configuración externa**: ni claves de API ni
-proveedores de mensajería.
+La agenda funciona sin ninguna configuración externa. El bot de WhatsApp es
+opcional y se levanta aparte (ver abajo).
+
+### Bot de WhatsApp
+
+```bash
+docker compose --profile bot up -d bot   # o: cd bot && npm install && npm run dev
+```
+
+Después entrá a **WhatsApp** en el panel y escaneá el QR desde el celular del
+consultorio (WhatsApp → Dispositivos vinculados). La sesión queda guardada en
+`data/wa-auth/`. Para que el bot responda consultas con IA, poné
+`OPENAI_API_KEY` en `.env.local` y completá `bot/project.md` con los datos del
+consultorio; sin clave, el bot igual confirma turnos y deriva todo lo demás al
+equipo. Detalle en `bot/README.md`.
 
 ## Qué hace
 
@@ -45,6 +58,14 @@ proveedores de mensajería.
   listo) o se copia, y después se marca como enviado. No hay duplicados
   (unique por turno + horario). Si el turno se reprograma, hace falta un
   recordatorio nuevo.
+- **WhatsApp (bot opcional):** bandeja de conversaciones con la ficha del
+  paciente al costado (lo reconoce por el teléfono; si no está cargado, se
+  puede dar de alta desde el chat). Cada conversación está en modo Bot o
+  Humano. El bot confirma el turno cuando el paciente responde «sí» a un
+  recordatorio, y los pedidos de cancelar o reprogramar, o lo que no sabe
+  contestar, los pasa a Humano y los marca como pendientes de atención (punto
+  rojo en la bandeja y aviso en Inicio). Los recordatorios se pueden mandar por
+  el bot desde la agenda, o en forma automática si se activa en Configuración.
 - **Configuración:** nombre del consultorio, zona horaria, duración por defecto,
   anticipación del recordatorio y profesionales.
 
@@ -61,6 +82,12 @@ directo, Redis para sesiones, Tailwind v4 + shadcn/ui.
   WhatsApp, aritmética de fechas).
 - `app/(app)/*/acciones.ts`: Server Actions.
 - `db/migrations/`: esquema. `scripts/seed.ts`: datos ficticios.
+- `bot/`: servicio aparte (Baileys + OpenAI opcional), portado del bot de Sosa
+  Drive y adaptado a turnos. Se comunica con el panel por Postgres (tablas
+  `wa_*`) y Redis (colas `wa:outbox` y `wa:control`). Al arrancar aplica la
+  migración `20261013000001_whatsapp.sql`, que es idempotente; por eso una base
+  creada antes del bot no necesita re-sembrarse. `lib/data-whatsapp.ts` lee
+  esas tablas desde el panel.
 
 Tomado de la base de Sosa Drive (copiado, sin dependencia entre repos): auth (argon2 + sesión en Redis + cookie), proxy de
 rutas, sidebar/topbar, componentes `ui/`, diálogo de formulario y campos,
@@ -71,9 +98,10 @@ manejo de errores de acciones, pool de Postgres y docker-compose.
 - **Un consultorio por instalación.** Sosa Drive no tenía multiempresa y no
   se simula aislamiento. Para varios consultorios en una misma base habría que
   agregar `consultorio_id` a cada tabla y filtrar por sesión.
-- **Recordatorio manual.** El bot de WhatsApp de Sosa Drive (Baileys) podría
-  mandarlos solo, pero está atado a leads y al catálogo de motos. Desacoplarlo
-  es el siguiente paso si la validación lo pide.
+- **El bot no agenda ni reprograma solo.** Confirma turnos existentes; los
+  cambios los resuelve una persona desde la agenda.
+- Baileys usa WhatsApp Web (no la API oficial de Meta): conviene un número
+  dedicado al consultorio.
 - La autorización por rol solo separa la configuración (administrador) del
   resto.
 

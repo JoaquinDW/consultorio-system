@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Check, Copy, MessageCircle } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import { Bot, Check, Copy, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,15 +13,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { marcarRecordatorioEnviado } from "@/app/(app)/agenda/acciones";
+import {
+  enviarRecordatorioPorBot,
+  marcarRecordatorioEnviado,
+} from "@/app/(app)/agenda/acciones";
 import { linkWhatsapp } from "@/lib/recordatorios";
 import type { CanalRecordatorio, Turno } from "@/lib/types";
 
 /**
- * Flujo manual de recordatorio: el mensaje se abre en el WhatsApp de quien
- * atiende (wa.me) o se copia, y después se marca como enviado. No hay envío
- * automático: el sistema no puede saber si el mensaje salió, por eso el
- * "enviado" lo confirma una persona.
+ * Recordatorio de un turno. Si el bot de WhatsApp está conectado, se manda por
+ * el bot con un clic. Si no, queda el flujo manual: se abre en el WhatsApp de
+ * quien atiende (wa.me) o se copia, y después se marca como enviado (el sistema
+ * no puede saber si un mensaje manual salió).
  */
 export function DialogoRecordatorio({
   turno,
@@ -34,7 +37,35 @@ export function DialogoRecordatorio({
 }) {
   const [canal, setCanal] = useState<CanalRecordatorio | null>(null);
   const [pendiente, iniciarTransicion] = useTransition();
+  const [botConectado, setBotConectado] = useState(false);
   const link = linkWhatsapp(turno.pacienteTelefono, turno.mensajeRecordatorio);
+
+  // Al abrir, preguntar si el bot está conectado para ofrecer el envío directo.
+  useEffect(() => {
+    if (!abierto) return;
+    let activo = true;
+    fetch("/api/whatsapp/estado")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((e: { estado?: string } | null) => {
+        if (activo) setBotConectado(e?.estado === "conectado");
+      })
+      .catch(() => activo && setBotConectado(false));
+    return () => {
+      activo = false;
+    };
+  }, [abierto]);
+
+  function enviarPorBot() {
+    iniciarTransicion(async () => {
+      const resultado = await enviarRecordatorioPorBot(turno.id);
+      if (resultado.ok) {
+        toast.success("Recordatorio enviado por WhatsApp.");
+        alCambiarAbierto(false);
+      } else {
+        toast.error(resultado.error);
+      }
+    });
+  }
 
   async function copiar() {
     try {
@@ -73,8 +104,9 @@ export function DialogoRecordatorio({
         <DialogHeader>
           <DialogTitle>Recordatorio para {turno.pacienteNombre}</DialogTitle>
           <DialogDescription>
-            Abrilo en WhatsApp o copialo, mandalo desde tu teléfono y después
-            marcalo como enviado.
+            {botConectado
+              ? "Mandalo con el bot de WhatsApp, o abrilo en tu WhatsApp y marcalo como enviado."
+              : "Abrilo en WhatsApp o copialo, mandalo desde tu teléfono y después marcalo como enviado."}
           </DialogDescription>
         </DialogHeader>
 
@@ -122,11 +154,21 @@ export function DialogoRecordatorio({
         </div>
 
         {!turno.recordatorioEnviadoEn && (
-          <DialogFooter>
-            <Button onClick={marcar} disabled={pendiente}>
+          <DialogFooter className="gap-2">
+            <Button
+              onClick={marcar}
+              disabled={pendiente}
+              variant={botConectado ? "outline" : "default"}
+            >
               <Check aria-hidden="true" />
               {pendiente ? "Guardando…" : "Marcar como enviado"}
             </Button>
+            {botConectado && link && (
+              <Button onClick={enviarPorBot} disabled={pendiente}>
+                <Bot aria-hidden="true" />
+                Enviar por el bot
+              </Button>
+            )}
           </DialogFooter>
         )}
       </DialogContent>

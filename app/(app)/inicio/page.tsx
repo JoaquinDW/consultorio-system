@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { BellRing, CalendarCheck, CalendarDays, Clock, Users } from "lucide-react";
+import {
+  BellRing,
+  CalendarCheck,
+  CalendarDays,
+  Clock,
+  MessageCircle,
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,6 +28,7 @@ import {
   obtenerRecordatoriosPendientes,
   obtenerTurnos,
 } from "@/lib/data";
+import { contarConversacionesConAtencion } from "@/lib/data-whatsapp";
 import { desfaseZona, fechaLarga, hoyEn, sumarDias } from "@/lib/fechas";
 
 export const metadata = { title: "Inicio" };
@@ -30,13 +38,14 @@ export default async function InicioPage() {
   const hoy = hoyEn(consultorio.zonaHoraria);
   const manana = sumarDias(hoy, 1);
 
-  const [turnosHoy, proximos, recordatorios, pacientes, profesionales] =
+  const [turnosHoy, proximos, recordatorios, pacientes, profesionales, chatsConAtencion] =
     await Promise.all([
       obtenerTurnos({ desde: hoy, hasta: manana }),
       obtenerProximosTurnos({ desde: manana, limite: 5 }),
       obtenerRecordatoriosPendientes(),
       obtenerPacientes(),
       obtenerProfesionales(),
+      contarConversacionesConAtencion(),
     ]);
 
   const activosHoy = turnosHoy.filter(
@@ -72,6 +81,21 @@ export default async function InicioPage() {
           />
         </div>
       </div>
+
+      {chatsConAtencion > 0 && (
+        <Link
+          href="/whatsapp"
+          className="flex items-center gap-3 rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm transition-colors hover:bg-destructive/10"
+        >
+          <MessageCircle className="size-4 shrink-0 text-destructive" aria-hidden="true" />
+          <span>
+            {chatsConAtencion === 1
+              ? "1 conversación de WhatsApp necesita que alguien la responda"
+              : `${chatsConAtencion} conversaciones de WhatsApp necesitan que alguien las responda`}{" "}
+            (pedidos de cambio, consultas que el bot derivó).
+          </span>
+        </Link>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <KpiCard etiqueta="Turnos de hoy" valor={String(activosHoy.length)} icono={CalendarCheck} />

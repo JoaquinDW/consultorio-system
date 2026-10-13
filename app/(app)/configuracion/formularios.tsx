@@ -17,6 +17,7 @@ import {
   cambiarActivoProfesional,
   crearProfesional,
 } from "./acciones";
+import { cambiarRecordatoriosAutomaticos } from "../whatsapp/acciones";
 
 export function FormularioConsultorio({
   consultorio,
@@ -134,5 +135,53 @@ export function CambiarActivoProfesional({ profesional }: { profesional: Profesi
     <Button variant="outline" size="sm" onClick={cambiar} disabled={pendiente}>
       {profesional.activo ? "Desactivar" : "Activar"}
     </Button>
+  );
+}
+
+export function ToggleRecordatoriosAutomaticos({
+  activo,
+  editable,
+}: {
+  activo: boolean;
+  editable: boolean;
+}) {
+  const [valor, setValor] = useState(activo);
+  const [pendiente, iniciarTransicion] = useTransition();
+
+  function cambiar(nuevo: boolean) {
+    setValor(nuevo);
+    iniciarTransicion(async () => {
+      const resultado = await cambiarRecordatoriosAutomaticos(nuevo);
+      if (resultado.ok) {
+        toast.success(
+          nuevo
+            ? "Los recordatorios se van a mandar solos por WhatsApp."
+            : "Recordatorios automáticos apagados.",
+        );
+      } else {
+        setValor(!nuevo);
+        toast.error(resultado.error);
+      }
+    });
+  }
+
+  return (
+    <label className="flex items-start gap-3 text-sm">
+      <input
+        type="checkbox"
+        className="mt-0.5 size-4 accent-primary"
+        checked={valor}
+        disabled={!editable || pendiente}
+        onChange={(e) => cambiar(e.target.checked)}
+      />
+      <span>
+        <span className="font-medium">Mandar los recordatorios automáticamente</span>
+        <span className="block text-xs text-muted-foreground">
+          Con el bot conectado, cada turno recibe su recordatorio por WhatsApp
+          cuando entra en la anticipación configurada. Si el paciente responde
+          «sí», el turno queda confirmado.
+        </span>
+      </span>
+    </label>
   );
 }
