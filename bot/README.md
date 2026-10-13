@@ -17,6 +17,15 @@ turnos: sin leads ni catálogo.
 - **Confirmación:** si el paciente contesta "sí", "confirmo", "dale"… dentro de
   las 48 h de un recordatorio, el turno pasa a **confirmado** y el bot le
   responde. Ante la duda no confirma nada.
+- **Turnos nuevos:** antes de pasarle la charla al equipo, el bot pide nombre
+  y apellido, qué servicio quiere (nunca síntomas ni datos clínicos) y con qué
+  profesional. Si en Configuración prendés **"El bot puede dar turnos"** (y hay
+  `OPENAI_API_KEY`), además busca lugar en la agenda respetando los horarios
+  de atención y los turnos ya dados, ofrece opciones y, cuando el paciente
+  confirma, reserva el turno (queda pendiente, como uno dado desde el panel).
+  Si quien escribe no era paciente, lo da de alta con su teléfono; si ya tiene
+  un turno próximo, no le da otro y deriva. Sin horarios de atención cargados
+  no ofrece turnos.
 - **Pedidos de cambio o cancelación:** el bot no toca el turno. Responde que le
   pasa el mensaje al equipo, deja la conversación en modo humano y marcada
   "Requiere atención" en el panel, y lo anota en el historial del turno.

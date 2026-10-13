@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import type { ServicioBot } from "./agenda.js";
 import type { Consultorio, ContextoPaciente } from "./db.js";
 import { fechaLarga } from "./mensajes.js";
 
@@ -9,7 +10,15 @@ import { fechaLarga } from "./mensajes.js";
  *    decir). Lo edita el consultorio sin tocar código; guardar aplica al toque.
  * 2. Datos en vivo del sistema: nombre, profesionales y la fecha de hoy.
  * 3. Si el que escribe es un paciente conocido: su nombre y próximos turnos.
+ * 4. Cómo tomar un turno nuevo: darlo el bot (si está prendido en
+ *    Configuración) o juntar los datos y derivar.
  */
+
+export interface ContextoPrompt {
+  /** "El bot puede dar turnos" (Configuración → WhatsApp). */
+  agendaActiva: boolean;
+  servicios: ServicioBot[];
+}
 
 const RUTA_PROJECT_MD = new URL("../project.md", import.meta.url);
 
@@ -22,8 +31,7 @@ const FALLBACK = `
 Sos el asistente virtual de un consultorio. Atendés por WhatsApp en español
 rioplatense (vos, no tú), en mensajes cortos y amables.
 Nunca des consejos médicos ni hables de diagnósticos o tratamientos.
-No confirmes turnos nuevos ni horarios: tomá el pedido y avisá que el equipo
-lo confirma. Ante cualquier duda, derivá a una persona.
+Ante cualquier duda, derivá a una persona.
 `.trim();
 
 async function leerProjectMd(): Promise<string> {
@@ -48,7 +56,10 @@ function bloqueConsultorio(c: Consultorio): string {
     c.profesionales.length === 0
       ? "- (no hay profesionales cargados)"
       : c.profesionales
-          .map((p) => `- ${p.nombre}${p.especialidad ? ` (${p.especialidad})` : ""}`)
+          .map(
+            (p) =>
+              `- ${p.nombre}${p.especialidad ? ` (${p.especialidad})` : ""} [profesional_id: ${p.id}]`,
+          )
           .join("\n");
   return [
     "## Datos del sistema (en vivo)",
@@ -89,21 +100,87 @@ function bloquePaciente(p: ContextoPaciente | null): string {
   ].join("\n");
 }
 
+function bloqueServicios(servicios: ServicioBot[]): string {
+  if (servicios.length === 0) {
+    return ["## Servicios", "", "No hay servicios cargados: no hace falta preguntar cuál quiere."].join("\n");
+  }
+  return [
+    "## Servicios que se pueden pedir",
+    "",
+    ...servicios.map(
+      (s) =>
+        `- ${s.nombre} (${s.duracionMin} min)` +
+        `${s.profesional ? `, con ${s.profesional}` : ""}` +
+        `${s.lugar ? `, en ${s.lugar}` : ""} [servicio_id: ${s.id}]`,
+    ),
+    "",
+    "Los ids son internos: no se los muestres al paciente.",
+  ].join("\n");
+}
+
+const DATOS_TURNO_NUEVO = [
+  "- **Nombre y apellido.** Si no figura en \"Quién escribe\", o figura solo el nombre de pila, pedíselo.",
+  "- **Qué servicio** quiere, de la lista de servicios (si hay). Preguntá solo cuál servicio: nunca",
+  "  síntomas, motivos médicos ni datos clínicos. Si lo que pide no encaja con ningún servicio, derivá.",
+  "- **Con qué profesional**, si el servicio no tiene uno fijo y atiende más de uno (o si le da igual).",
+].join("\n");
+
+function bloqueTurnosNuevos(agendaActiva: boolean): string {
+  if (!agendaActiva) {
+    return [
+      "## Turnos nuevos",
+      "",
+      "Esto manda sobre lo que diga más arriba sobre sacar turnos. Vos no das turnos ni horarios:",
+      "los confirma el equipo. Antes de derivar, conseguí estos datos (de a uno o dos por mensaje,",
+      "sin volver a pedir lo que ya te dijo):",
+      "",
+      DATOS_TURNO_NUEVO,
+      "- **Qué días y horarios** le quedan cómodos.",
+      "",
+      "Con eso, avisá que el equipo le confirma el turno y derivá. Si no quiere dar algún dato o",
+      "insiste en hablar con una persona, derivá igual.",
+    ].join("\n");
+  }
+  return [
+    "## Turnos nuevos (los das vos)",
+    "",
+    "Esto manda sobre lo que diga más arriba sobre sacar turnos: podés dar turnos con las",
+    "herramientas `consultar_disponibilidad` y `agendar_turno`. Pasos (pedí de a uno o dos datos",
+    "por mensaje, sin volver a pedir lo que ya te dijo):",
+    "",
+    DATOS_TURNO_NUEVO,
+    "- **Buscá lugar** con `consultar_disponibilidad` (si dijo qué día prefiere, buscá desde ese día).",
+    "  Ofrecé 2 o 3 opciones de las que devuelve. Nunca ofrezcas un horario que la herramienta no",
+    "  devolvió ni inventes disponibilidad.",
+    "- **Antes de reservar**, repetí servicio, profesional, día y hora, y pedí que confirme.",
+    "- Con su confirmación, usá `agendar_turno`. Si sale bien, confirmale el turno con día, hora y",
+    "  profesional. Si da error, explicale con tus palabras y ofrecé otro horario, o derivá si el",
+    "  error lo pide.",
+    "- Si ya tiene un turno próximo y quiere otro, o algo no se puede resolver con las herramientas, derivá.",
+  ].join("\n");
+}
+
 const REGLA_DERIVAR = [
   "## Cómo derivar",
   "",
-  `Cuando la charla la tenga que seguir una persona (pedir, cambiar o cancelar un turno,`,
-  `algo que no sabés, una urgencia o una queja), respondé avisando que le pasás el mensaje`,
-  `al equipo y agregá al final, en una línea sola, exactamente ${MARCA_DERIVAR}.`,
+  `Cuando la charla la tenga que seguir una persona (cambiar o cancelar un turno, un turno`,
+  `nuevo que no podés dar vos, algo que no sabés, una urgencia o una queja), respondé avisando`,
+  `que le pasás el mensaje al equipo y agregá al final, en una línea sola, exactamente ${MARCA_DERIVAR}.`,
   "El paciente no ve esa marca: el sistema la saca y avisa al equipo.",
 ].join("\n");
 
 export async function construirSystemPrompt(
   consultorio: Consultorio,
   paciente: ContextoPaciente | null,
+  { agendaActiva, servicios }: ContextoPrompt,
 ): Promise<string> {
   const projectMd = await leerProjectMd();
-  return [projectMd, bloqueConsultorio(consultorio), bloquePaciente(paciente), REGLA_DERIVAR].join(
-    "\n\n---\n\n",
-  );
+  return [
+    projectMd,
+    bloqueConsultorio(consultorio),
+    bloquePaciente(paciente),
+    bloqueServicios(servicios),
+    bloqueTurnosNuevos(agendaActiva),
+    REGLA_DERIVAR,
+  ].join("\n\n---\n\n");
 }

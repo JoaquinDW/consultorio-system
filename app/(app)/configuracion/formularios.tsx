@@ -10,7 +10,7 @@ import {
   CampoTexto,
   FilaCampos,
 } from "@/components/app/campos-formulario";
-import { ESTADO_INICIAL } from "@/lib/acciones/estado";
+import { ESTADO_INICIAL, type EstadoFormulario } from "@/lib/acciones/estado";
 import { DIAS_SEMANA } from "@/lib/horarios";
 import {
   DURACIONES_TURNO,
@@ -28,7 +28,10 @@ import {
   crearProfesional,
   eliminarHorario,
 } from "./acciones";
-import { cambiarRecordatoriosAutomaticos } from "../whatsapp/acciones";
+import {
+  cambiarAgendarTurnosBot,
+  cambiarRecordatoriosAutomaticos,
+} from "../whatsapp/acciones";
 
 export function FormularioConsultorio({
   consultorio,
@@ -286,22 +289,68 @@ export function ToggleRecordatoriosAutomaticos({
   activo: boolean;
   editable: boolean;
 }) {
+  return (
+    <ToggleWhatsapp
+      activo={activo}
+      editable={editable}
+      guardar={cambiarRecordatoriosAutomaticos}
+      avisoPrendido="Los recordatorios se van a mandar solos por WhatsApp."
+      avisoApagado="Recordatorios automáticos apagados."
+      titulo="Mandar los recordatorios automáticamente"
+      descripcion="Con el bot conectado, cada turno recibe su recordatorio por WhatsApp cuando entra en la anticipación configurada. Si el paciente responde «sí», el turno queda confirmado."
+    />
+  );
+}
+
+export function ToggleAgendarTurnosBot({
+  activo,
+  editable,
+}: {
+  activo: boolean;
+  editable: boolean;
+}) {
+  return (
+    <ToggleWhatsapp
+      activo={activo}
+      editable={editable}
+      guardar={cambiarAgendarTurnosBot}
+      avisoPrendido="El bot va a dar turnos nuevos por WhatsApp."
+      avisoApagado="El bot ya no da turnos: toma el pedido y te lo pasa."
+      titulo="El bot puede dar turnos"
+      descripcion="Cuando alguien pide un turno, el bot le pide nombre y apellido y el servicio, busca lugar dentro de los horarios de atención y, si el paciente confirma, lo reserva (queda pendiente). Si quien escribe no es paciente, lo da de alta. Apagado, junta esos datos y te pasa la charla. Necesita la IA del bot (OPENAI_API_KEY)."
+    />
+  );
+}
+
+function ToggleWhatsapp({
+  activo,
+  editable,
+  guardar,
+  avisoPrendido,
+  avisoApagado,
+  titulo,
+  descripcion,
+}: {
+  activo: boolean;
+  editable: boolean;
+  guardar: (activo: boolean) => Promise<EstadoFormulario>;
+  avisoPrendido: string;
+  avisoApagado: string;
+  titulo: string;
+  descripcion: string;
+}) {
   const [valor, setValor] = useState(activo);
   const [pendiente, iniciarTransicion] = useTransition();
 
   function cambiar(nuevo: boolean) {
     setValor(nuevo);
     iniciarTransicion(async () => {
-      const resultado = await cambiarRecordatoriosAutomaticos(nuevo);
+      const resultado = await guardar(nuevo);
       if (resultado.ok) {
-        toast.success(
-          nuevo
-            ? "Los recordatorios se van a mandar solos por WhatsApp."
-            : "Recordatorios automáticos apagados.",
-        );
+        toast.success(nuevo ? avisoPrendido : avisoApagado);
       } else {
         setValor(!nuevo);
-        toast.error(resultado.error);
+        toast.error(resultado.error ?? "No pudimos guardar el cambio.");
       }
     });
   }
@@ -316,12 +365,8 @@ export function ToggleRecordatoriosAutomaticos({
         onChange={(e) => cambiar(e.target.checked)}
       />
       <span>
-        <span className="font-medium">Mandar los recordatorios automáticamente</span>
-        <span className="block text-xs text-muted-foreground">
-          Con el bot conectado, cada turno recibe su recordatorio por WhatsApp
-          cuando entra en la anticipación configurada. Si el paciente responde
-          «sí», el turno queda confirmado.
-        </span>
+        <span className="font-medium">{titulo}</span>
+        <span className="block text-xs text-muted-foreground">{descripcion}</span>
       </span>
     </label>
   );

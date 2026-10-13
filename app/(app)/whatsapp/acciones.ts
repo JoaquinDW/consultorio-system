@@ -170,13 +170,25 @@ export async function desconectarWhatsapp(): Promise<EstadoFormulario> {
 export async function cambiarRecordatoriosAutomaticos(
   activo: boolean,
 ): Promise<EstadoFormulario> {
+  return cambiarConfigWa("recordatorios_automaticos", activo);
+}
+
+/** Prende o apaga que el bot dé turnos nuevos por su cuenta. */
+export async function cambiarAgendarTurnosBot(activo: boolean): Promise<EstadoFormulario> {
+  return cambiarConfigWa("agendar_turnos", activo);
+}
+
+async function cambiarConfigWa(
+  columna: "recordatorios_automaticos" | "agendar_turnos",
+  activo: boolean,
+): Promise<EstadoFormulario> {
   if (!(await esAdministrador())) {
     return { ok: false, error: "Solo quien administra el consultorio puede cambiar esto." };
   }
   try {
     await query(
-      `insert into wa_config (id, recordatorios_automaticos) values (1, $1)
-       on conflict (id) do update set recordatorios_automaticos = excluded.recordatorios_automaticos`,
+      `insert into wa_config (id, ${columna}) values (1, $1)
+       on conflict (id) do update set ${columna} = excluded.${columna}`,
       [activo],
     );
     revalidatePath("/configuracion");
@@ -185,11 +197,11 @@ export async function cambiarRecordatoriosAutomaticos(
     if (
       typeof error === "object" &&
       error !== null &&
-      (error as { code?: string }).code === "42P01"
+      ["42P01", "42703"].includes((error as { code?: string }).code ?? "")
     ) {
       return {
         ok: false,
-        error: "Primero levantá el bot de WhatsApp (docker compose up -d --build bot).",
+        error: "Primero levantá (o reiniciá) el bot de WhatsApp: docker compose up -d --build bot.",
       };
     }
     return mensajeDeError(error, "No pudimos guardar la configuración.");

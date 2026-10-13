@@ -24,6 +24,7 @@ import {
   type ContextoPaciente,
   type RolWaMensaje,
 } from "../db.js";
+import { agendarTurnosActivo, getServicios } from "../agenda.js";
 import { generarRespuesta, hayLlm } from "../openai.js";
 import { MARCA_DERIVAR } from "../system-prompt.js";
 import { esConfirmacion, esPedidoDeCambio, fechaLarga, nombrePila } from "../mensajes.js";
@@ -174,11 +175,17 @@ async function procesarMensaje(sock: WASocket, msg: WAMessage): Promise<void> {
 
   let respuesta: string;
   try {
-    const [historial, consultorio] = await Promise.all([
+    const [historial, consultorio, agendaActiva, servicios] = await Promise.all([
       getHistorialReciente(conversacion.id),
       getConsultorio(),
+      agendarTurnosActivo(),
+      getServicios(),
     ]);
-    respuesta = await generarRespuesta(historial, consultorio, paciente);
+    respuesta = await generarRespuesta(historial, consultorio, paciente, {
+      agendaActiva,
+      servicios,
+      conversacion,
+    });
   } catch (err) {
     console.error("[bot] error del LLM (no se responde):", err);
     await marcarAtencion(conversacion.id);

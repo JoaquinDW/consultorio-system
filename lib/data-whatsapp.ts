@@ -88,6 +88,19 @@ export async function obtenerRecordatoriosAutomaticos(): Promise<boolean> {
   }
 }
 
+/** "El bot puede dar turnos": apagado si el bot nunca corrió sobre esta base. */
+export async function obtenerAgendarTurnosBot(): Promise<boolean> {
+  try {
+    const filas = await query<{ activo: boolean }>(
+      "select agendar_turnos as activo from wa_config where id = 1",
+    );
+    return filas[0]?.activo ?? false;
+  } catch (error) {
+    if (esquemaIncompleto(error)) return false;
+    throw error;
+  }
+}
+
 interface FilaConversacionWa {
   id: string;
   telefono: string;
