@@ -1,0 +1,40 @@
+# Stack self-hosted de Turnos (consultorios): PostgreSQL + Redis.
+# Levantalo con `npm run db:up` y sembralo con `npm run db:seed`.
+# Puertos y nombres distintos a los de Sosa Drive para poder correr las dos
+# apps a la vez en la misma máquina.
+services:
+  postgres:
+    image: postgres:17
+    container_name: consultorios-postgres
+    environment:
+      POSTGRES_USER: consultorio
+      POSTGRES_PASSWORD: consultorio
+      POSTGRES_DB: consultorios
+    ports:
+      - "5433:5432"
+    volumes:
+      - consultorios-postgres-data:/var/lib/postgresql/data
+      # Las migraciones corren en orden alfabético al primer init (base vacía).
+      - ./db/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U consultorio -d consultorios"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: consultorios-redis
+    ports:
+      - "6381:6379"
+    volumes:
+      - consultorios-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  consultorios-postgres-data:
+  consultorios-redis-data:
