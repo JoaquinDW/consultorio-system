@@ -1,0 +1,992 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Turnos · Agenda y WhatsApp para consultorios</title>
+<meta name="description" content="Turnos ordena la agenda de tu consultorio, manda los recordatorios por WhatsApp y un bot responde, ofrece horarios y reserva turnos dentro de tus horarios de atención.">
+<meta name="theme-color" content="#0b1222">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_AR">
+<meta property="og:title" content="Turnos · Que el turno se agende solo">
+<meta property="og:description" content="Agenda, recordatorios y un bot de WhatsApp que da turnos por vos. Para consultorios de uno o varios profesionales.">
+<meta property="og:image" content="agenda-semana.webp">
+
+<!--
+  CONFIGURACIÓN
+  whatsapp: número con código de país, solo dígitos (ej. 5493511234567).
+            ⚠ PLACEHOLDER: reemplazalo por el número real antes de publicar.
+  pixelId:  ID del píxel de Meta. Vacío = no se carga nada.
+-->
+<script>
+  window.TURNOS = {
+    whatsapp: "5490000000000",
+    pixelId: ""
+  };
+</script>
+
+<!-- Meta Pixel: se carga solo si hay pixelId. Cada clic a WhatsApp manda el evento estándar "Contact". -->
+<script>
+  (function () {
+    var id = window.TURNOS && window.TURNOS.pixelId;
+    if (!id) return;
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+    document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', id);
+    fbq('track', 'PageView');
+  })();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,500..800&family=Geist+Mono:wght@400;500&family=Onest:wght@400;500;600&display=swap">
+
+<style>
+/* Layout: una columna en el teléfono (el anuncio de Meta llega ahí); en escritorio el hero
+   se abre en texto + escena (chat → agenda), y el resto alterna bloques sobre una grilla de 12. */
+:root {
+  --bg: oklch(0.982 0.004 255);
+  --surface: oklch(1 0 0);
+  --sunk: oklch(0.958 0.008 255);
+  --ink: oklch(0.21 0.035 264);
+  --ink-2: oklch(0.43 0.03 258);
+  --ink-3: oklch(0.57 0.02 258);
+  --line: oklch(0.915 0.012 255);
+
+  --night: oklch(0.19 0.042 266);
+  --night-2: oklch(0.245 0.045 265);
+  --night-ink: oklch(0.975 0.006 250);
+  --night-ink-2: oklch(0.79 0.03 256);
+  --night-line: oklch(0.31 0.04 263);
+
+  --wa: oklch(0.775 0.195 150);
+  --wa-hover: oklch(0.73 0.185 150);
+  --wa-ink: oklch(0.22 0.06 155);
+  --wa-text: oklch(0.5 0.135 152);
+  --brand: oklch(0.585 0.23 27);
+
+  --chat-bg: oklch(0.955 0.012 165);
+  --bubble-in: oklch(1 0 0);
+  --bubble-out: oklch(0.925 0.07 148);
+
+  --ok-bg: oklch(0.955 0.05 160);   --ok-fg: oklch(0.47 0.12 162);   --ok-line: oklch(0.85 0.08 160);
+  --pend-bg: oklch(0.965 0.045 75); --pend-fg: oklch(0.56 0.15 55);  --pend-line: oklch(0.86 0.09 70);
+  --err-bg: oklch(0.965 0.025 25);  --err-fg: oklch(0.52 0.19 27);   --err-line: oklch(0.85 0.08 25);
+
+  --f-display: "Bricolage Grotesque", "Avenir Next Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --t-hero: clamp(2.55rem, 1.5rem + 4.9vw, 5.1rem);
+  --t-h2: clamp(1.95rem, 1.3rem + 2.7vw, 3.2rem);
+  --t-h3: 1.25rem;
+  --t-body: 1.0625rem;
+  --t-small: 0.9rem;
+  --t-mono: 0.8125rem;
+
+  --r-sm: 6px;
+  --r-md: 12px;
+  --r-lg: 20px;
+  --shadow: 0 1px 2px oklch(0.2 0.04 264 / 0.06), 0 12px 32px -12px oklch(0.2 0.04 264 / 0.18);
+  --shadow-lg: 0 2px 4px oklch(0.1 0.04 264 / 0.2), 0 40px 80px -24px oklch(0.05 0.04 264 / 0.55);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: oklch(0.165 0.022 264);
+    --surface: oklch(0.21 0.026 263);
+    --sunk: oklch(0.185 0.024 264);
+    --ink: oklch(0.96 0.006 255);
+    --ink-2: oklch(0.79 0.022 257);
+    --ink-3: oklch(0.65 0.02 257);
+    --line: oklch(0.3 0.026 262);
+    --night: oklch(0.125 0.03 266);
+    --night-2: oklch(0.18 0.035 265);
+    --night-line: oklch(0.27 0.035 263);
+    --wa-text: oklch(0.8 0.17 150);
+    --chat-bg: oklch(0.17 0.02 230);
+    --bubble-in: oklch(0.25 0.022 245);
+    --bubble-out: oklch(0.36 0.075 158);
+    --ok-bg: oklch(0.27 0.05 162);   --ok-fg: oklch(0.83 0.13 160);  --ok-line: oklch(0.4 0.07 162);
+    --pend-bg: oklch(0.28 0.05 65);  --pend-fg: oklch(0.85 0.13 75);  --pend-line: oklch(0.42 0.08 65);
+    --err-bg: oklch(0.27 0.05 25);   --err-fg: oklch(0.8 0.13 25);   --err-line: oklch(0.42 0.1 25);
+    --shadow: 0 1px 2px oklch(0 0 0 / 0.3), 0 12px 32px -12px oklch(0 0 0 / 0.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: oklch(0.165 0.022 264);
+  --surface: oklch(0.21 0.026 263);
+  --sunk: oklch(0.185 0.024 264);
+  --ink: oklch(0.96 0.006 255);
+  --ink-2: oklch(0.79 0.022 257);
+  --ink-3: oklch(0.65 0.02 257);
+  --line: oklch(0.3 0.026 262);
+  --night: oklch(0.125 0.03 266);
+  --night-2: oklch(0.18 0.035 265);
+  --night-line: oklch(0.27 0.035 263);
+  --wa-text: oklch(0.8 0.17 150);
+  --chat-bg: oklch(0.17 0.02 230);
+  --bubble-in: oklch(0.25 0.022 245);
+  --bubble-out: oklch(0.36 0.075 158);
+  --ok-bg: oklch(0.27 0.05 162);   --ok-fg: oklch(0.83 0.13 160);  --ok-line: oklch(0.4 0.07 162);
+  --pend-bg: oklch(0.28 0.05 65);  --pend-fg: oklch(0.85 0.13 75);  --pend-line: oklch(0.42 0.08 65);
+  --err-bg: oklch(0.27 0.05 25);   --err-fg: oklch(0.8 0.13 25);   --err-line: oklch(0.42 0.1 25);
+  --shadow: 0 1px 2px oklch(0 0 0 / 0.3), 0 12px 32px -12px oklch(0 0 0 / 0.5);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 var(--t-body)/1.6 var(--f-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; }
+h1, h2, h3 { margin: 0; font-family: var(--f-display); text-wrap: balance; }
+p { margin: 0; }
+:focus-visible { outline: 3px solid var(--wa); outline-offset: 3px; border-radius: 4px; }
+[hidden] { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.wrap { max-width: 1180px; margin-inline: auto; padding-inline: clamp(16px, 4.5vw, 36px); }
+.mono { font-family: var(--f-mono); font-size: var(--t-mono); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.eyebrow {
+  font-family: var(--f-mono); font-size: 0.78rem; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--wa-text);
+}
+.h2 { font-size: var(--t-h2); font-weight: 750; font-variation-settings: "wdth" 88, "opsz" 72; line-height: 1.02; letter-spacing: -0.02em; }
+.lede { color: var(--ink-2); max-width: 58ch; font-size: 1.125rem; }
+
+/* ——— Botón WhatsApp ——— */
+.btn-wa {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.6em;
+  min-height: 56px; padding: 0 1.5em;
+  background: var(--wa); color: var(--wa-ink);
+  font: 600 1.0625rem/1 var(--f-body); text-decoration: none;
+  border-radius: 999px;
+  box-shadow: 0 0 0 0 oklch(0.775 0.195 150 / 0.5), 0 10px 24px -10px oklch(0.6 0.19 150 / 0.7);
+  transition: background .2s, transform .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-wa:hover { background: var(--wa-hover); transform: translateY(-1px); }
+.btn-wa:active { transform: translateY(1px); }
+.btn-wa svg { width: 1.35em; height: 1.35em; flex: none; }
+.btn-wa.is-lg { min-height: 64px; font-size: 1.15rem; padding: 0 1.8em; }
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: .4em; min-height: 56px; padding: 0 0.4em;
+  color: var(--night-ink-2); text-decoration: none; font-weight: 500;
+}
+.btn-ghost:hover { color: var(--night-ink); }
+
+/* ——— Barra superior ——— */
+.top {
+  position: absolute; inset: 0 0 auto 0; z-index: 10;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 72px; }
+.logo { display: inline-flex; align-items: center; gap: 10px; color: var(--night-ink); text-decoration: none; }
+.logo-mark {
+  width: 34px; height: 34px; border-radius: 9px; background: var(--brand);
+  display: grid; place-items: center; color: #fff;
+}
+.logo-mark svg { width: 20px; height: 20px; }
+.logo b { font: 700 1.3rem/1 var(--f-display); font-variation-settings: "wdth" 90; letter-spacing: -0.01em; }
+.nav { display: none; gap: 28px; }
+.nav a { color: var(--night-ink-2); text-decoration: none; font-size: .95rem; }
+.nav a:hover { color: var(--night-ink); }
+.top .btn-wa { min-height: 44px; font-size: .95rem; padding: 0 1.1em; }
+@media (min-width: 900px) { .nav { display: flex; } }
+
+/* ——— Hero ——— */
+.hero {
+  position: relative; isolation: isolate; overflow: hidden;
+  background: var(--night); color: var(--night-ink);
+  padding-block: calc(96px + env(safe-area-inset-top, 0px)) 72px;
+}
+/* Fondo: las líneas de hora de una agenda */
+.hero::before {
+  content: ""; position: absolute; inset: 0; z-index: -2;
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 63px, var(--night-line) 63px 64px),
+    radial-gradient(60% 50% at 78% 40%, oklch(0.5 0.15 152 / 0.22), transparent 70%),
+    radial-gradient(50% 60% at 10% 100%, oklch(0.45 0.12 262 / 0.35), transparent 70%);
+  mask-image: linear-gradient(to bottom, black 55%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent);
+}
+.hours {
+  position: absolute; inset: 0 auto 0 0; z-index: -1; display: none;
+  padding-left: 18px; color: var(--night-line);
+}
+.hours span { display: block; height: 64px; font: 500 11px/64px var(--f-mono); transform: translateY(-32px); }
+@media (min-width: 1280px) { .hours { display: block; } }
+
+.hero-grid { display: grid; gap: 56px; align-items: center; }
+@media (min-width: 980px) { .hero-grid { grid-template-columns: 1.05fr 1fr; gap: 40px; } }
+
+.hero-copy { display: grid; gap: 24px; justify-items: start; min-width: 0; }
+.pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px 6px 8px; border-radius: 999px;
+  border: 1px solid var(--night-line); background: oklch(1 0 0 / 0.04);
+  font-size: .85rem; color: var(--night-ink-2);
+}
+.pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--wa); box-shadow: 0 0 0 4px oklch(0.775 0.195 150 / 0.2); }
+.hero h1 {
+  font-size: var(--t-hero); font-weight: 760; line-height: 0.98; letter-spacing: -0.018em;
+  font-variation-settings: "wdth" 86, "opsz" 96;
+}
+.hero h1 em { font-style: normal; color: var(--wa); display: block; }
+.hero .lede { color: var(--night-ink-2); font-size: clamp(1.06rem, 1rem + .3vw, 1.2rem); }
+.hero .lede strong { color: var(--night-ink); font-weight: 600; }
+.cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+.cta-note { font-size: .875rem; color: var(--night-ink-2); display: flex; align-items: center; gap: 8px; }
+.cta-note svg { width: 16px; height: 16px; color: var(--wa); flex: none; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 8px 0 0; list-style: none; }
+.facts li {
+  font-size: .85rem; color: var(--night-ink-2); padding: 6px 12px; border-radius: 999px;
+  background: oklch(1 0 0 / 0.05); border: 1px solid var(--night-line);
+}
+
+/* Escena: teléfono + agenda. En el teléfono se apilan (la agenda tapa solo la barra de escribir);
+   desde 620px van lado a lado. */
+.stage { position: relative; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+@media (min-width: 620px) { .stage { flex-direction: row; justify-content: center; } }
+
+.phone {
+  width: min(300px, 84vw); flex: none; border-radius: 40px; padding: 10px;
+  background: oklch(0.12 0.02 265); box-shadow: var(--shadow-lg), inset 0 0 0 1.5px oklch(0.4 0.03 260);
+  position: relative; z-index: 1;
+}
+.screen { border-radius: 31px; overflow: hidden; background: var(--chat-bg); color: var(--ink); }
+.chat-head {
+  display: flex; align-items: center; gap: 10px; padding: 26px 14px 10px;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex: none;
+  background: var(--brand); color: #fff; display: grid; place-items: center;
+}
+.avatar svg { width: 18px; height: 18px; }
+.chat-head b { display: block; font-size: .9rem; line-height: 1.2; font-weight: 600; }
+.chat-status { font-size: .75rem; color: var(--ink-3); line-height: 1.2; }
+.chat-status.is-typing { color: var(--wa-text); }
+.chat {
+  height: 410px; padding: 14px 12px; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: flex-end; gap: 6px;
+  font-size: .845rem; line-height: 1.4;
+}
+.day-tag {
+  align-self: center; font-size: .7rem; padding: 3px 10px; border-radius: 8px;
+  background: var(--surface); color: var(--ink-3); box-shadow: 0 1px 1px oklch(0 0 0 / .06); margin-bottom: 4px;
+}
+.msg {
+  max-width: 84%; padding: 7px 10px 6px; border-radius: 12px; position: relative;
+  box-shadow: 0 1px 1px oklch(0 0 0 / .08);
+}
+.msg.in { align-self: flex-start; background: var(--bubble-in); border-top-left-radius: 4px; }
+.msg.out { align-self: flex-end; background: var(--bubble-out); border-top-right-radius: 4px; }
+.msg time { display: block; text-align: right; font: 400 .66rem/1 var(--f-mono); color: var(--ink-3); margin-top: 3px; }
+.slots { display: flex; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
+.slots span {
+  font: 500 .75rem/1 var(--f-mono); padding: 6px 9px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--sunk);
+}
+.slots span.is-picked { border-color: var(--wa-text); color: var(--wa-text); background: var(--ok-bg); }
+.msg.is-entering { animation: msg-in .38s cubic-bezier(.2,.9,.3,1.2) both; }
+@keyframes msg-in { from { opacity: 0; transform: translateY(10px) scale(.96); } }
+.composer { display: flex; align-items: center; gap: 8px; padding: 8px 10px 14px; background: var(--chat-bg); }
+.composer span { flex: 1; background: var(--surface); border-radius: 999px; padding: 9px 14px; font-size: .8rem; color: var(--ink-3); }
+.composer i { width: 34px; height: 34px; border-radius: 50%; background: var(--wa); flex: none; }
+.replay {
+  margin-left: auto; background: none; border: 0; color: var(--ink-3); font: 500 .72rem var(--f-body);
+  display: inline-flex; gap: 5px; align-items: center; cursor: pointer; padding: 6px; border-radius: 6px;
+}
+.replay:hover { color: var(--ink); background: var(--sunk); }
+.replay svg { width: 18px; height: 18px; }
+
+.agenda-card {
+  position: relative; z-index: 2; flex: none; margin-top: -48px;
+  width: min(300px, 88vw);
+  background: var(--surface); color: var(--ink);
+  border-radius: var(--r-md); box-shadow: var(--shadow-lg);
+  border: 1px solid var(--line);
+}
+@media (min-width: 620px) { .agenda-card { width: 268px; margin: 64px 0 0 -14px; align-self: center; } }
+.ac-head { padding: 12px 14px 10px; border-bottom: 1px solid var(--line); }
+.ac-head b { font: 700 1rem/1.2 var(--f-display); font-variation-settings: "wdth" 92; display: block; }
+.ac-head span { font-size: .72rem; color: var(--ink-3); }
+.ac-rows { padding: 8px; display: grid; gap: 6px; }
+.row {
+  display: grid; grid-template-columns: 44px 1fr; gap: 8px; align-items: start;
+  padding: 8px 8px; border-radius: 8px; border: 1px solid var(--line); font-size: .8rem; line-height: 1.3;
+}
+.row .mono { font-weight: 500; color: var(--ink); padding-top: 1px; }
+.row small { display: block; color: var(--ink-3); font-size: .72rem; margin-top: 2px; }
+.row.is-free { border-style: dashed; color: var(--ink-3); background: transparent; }
+.row.is-new { border-color: var(--wa-text); background: var(--ok-bg); }
+.row.is-new.flash { animation: flash 1.2s ease-out; }
+@keyframes flash { 0% { box-shadow: 0 0 0 0 oklch(0.775 0.195 150 / .7); } 100% { box-shadow: 0 0 0 14px oklch(0.775 0.195 150 / 0); } }
+.chip {
+  display: inline-block; font-size: .7rem; font-weight: 500; line-height: 1; padding: 3px 6px;
+  border-radius: 4px; border: 1px solid; vertical-align: 1px; margin-left: 4px; white-space: nowrap;
+}
+.chip.ok { color: var(--ok-fg); background: var(--ok-bg); border-color: var(--ok-line); }
+.chip.pend { color: var(--pend-fg); background: var(--pend-bg); border-color: var(--pend-line); }
+.toast {
+  position: absolute; z-index: 3; top: -46px; right: 8px; white-space: nowrap;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+  padding: 8px 12px; border-radius: 10px; box-shadow: var(--shadow); font-size: .78rem; font-weight: 500;
+  transition: opacity .3s, transform .3s;
+}
+.toast svg { width: 15px; height: 15px; color: var(--ok-fg); }
+.toast.is-hidden { opacity: 0; transform: translateY(6px); }
+
+/* ——— Secciones ——— */
+.section { padding-block: clamp(72px, 10vw, 128px); }
+.section-head { display: grid; gap: 16px; margin-bottom: clamp(36px, 5vw, 56px); max-width: 760px; }
+
+/* ¿Te suena? */
+.pains { display: grid; gap: 14px; }
+.pain {
+  display: grid; gap: 10px; padding: 18px; border-radius: var(--r-lg);
+  background: var(--surface); border: 1px solid var(--line);
+}
+@media (min-width: 760px) {
+  .pain { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: center; padding: 20px 24px; }
+}
+.pain .bubble {
+  justify-self: start; max-width: 100%;
+  background: var(--chat-bg); padding: 10px 14px 8px; border-radius: 14px; border-top-left-radius: 4px;
+  font-size: .98rem;
+}
+.pain .bubble time { font: 500 .72rem/1 var(--f-mono); color: var(--ink-3); display: flex; gap: 6px; align-items: center; margin-bottom: 5px; }
+.pain .bubble time b { color: var(--err-fg); font-weight: 500; }
+.pain .answer { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; min-width: 0; }
+.pain .answer .dot {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--ok-bg); color: var(--ok-fg);
+  display: grid; place-items: center; margin-top: 1px;
+}
+.pain .answer .dot svg { width: 15px; height: 15px; }
+.pain .answer p { color: var(--ink-2); }
+.pain .answer strong { color: var(--ink); font-weight: 600; }
+
+/* Paso a paso */
+.flow { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: paso; }
+.step { display: grid; grid-template-columns: 48px 1fr; gap: 0 18px; position: relative; padding-bottom: 36px; }
+.step:last-child { padding-bottom: 0; }
+.step::before {
+  counter-increment: paso; content: counter(paso);
+  width: 48px; height: 48px; border-radius: 50%;
+  display: grid; place-items: center; font: 700 1.25rem/1 var(--f-display);
+  background: var(--ink); color: var(--bg); grid-row: span 3;
+}
+.step::after {
+  content: ""; position: absolute; left: 23px; top: 56px; bottom: 8px; width: 2px;
+  background: repeating-linear-gradient(to bottom, var(--line) 0 6px, transparent 6px 11px);
+}
+.step:last-child::after { display: none; }
+.step .who { font: 500 .75rem/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); padding-top: 6px; }
+.step h3 { font-size: 1.45rem; font-weight: 700; font-variation-settings: "wdth" 90; letter-spacing: -0.01em; margin: 8px 0 6px; }
+.step p { color: var(--ink-2); max-width: 46ch; }
+@media (min-width: 900px) {
+  .flow { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px; }
+  .step { grid-template-columns: 1fr; padding-bottom: 0; }
+  .step::before { grid-row: auto; margin-bottom: 16px; }
+  .step::after { left: 60px; right: -16px; top: 23px; bottom: auto; width: auto; height: 2px;
+    background: repeating-linear-gradient(to right, var(--line) 0 6px, transparent 6px 11px); }
+  .step .who { padding-top: 0; }
+}
+
+/* Funciones (bento) */
+.bento { display: grid; gap: 14px; align-items: start; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 760px) { .bento { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.tile {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
+  padding: 22px; display: grid; gap: 16px; align-content: start; min-width: 0;
+}
+.tile h3 { font-size: var(--t-h3); font-weight: 700; font-variation-settings: "wdth" 92; letter-spacing: -0.01em; }
+.tile > p { color: var(--ink-2); font-size: .98rem; }
+.tile .mock { background: var(--sunk); border-radius: var(--r-md); padding: 14px; border: 1px solid var(--line); min-width: 0; }
+@media (min-width: 760px) {
+  .span-4 { grid-column: span 4; } .span-3 { grid-column: span 3; } .span-2 { grid-column: span 2; } .span-6 { grid-column: span 6; }
+}
+
+/* mini semana */
+.week { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.week .col { display: grid; gap: 5px; align-content: start; min-width: 0; }
+.week .col > b { font: 600 .72rem/1.2 var(--f-body); color: var(--ink-2); }
+.week .col > b.is-today { color: var(--wa-text); }
+.week .t { border-radius: 6px; padding: 5px 6px; font-size: .68rem; line-height: 1.25; border: 1px solid var(--line); background: var(--surface); overflow: hidden; }
+.week .t .mono { font-size: .68rem; display: block; color: var(--ink); font-weight: 500; }
+.week .t span { color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.week .t.ok { border-left: 3px solid var(--ok-fg); }
+.week .t.pend { border-left: 3px solid var(--pend-fg); }
+.tz { display: flex; gap: 6px; align-items: center; font-size: .78rem; color: var(--ink-3); margin-top: 10px; }
+.tz svg { width: 14px; height: 14px; flex: none; }
+
+/* servicios */
+.svc { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.svc th { text-align: left; font: 500 .7rem/1 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); padding: 0 0 8px; }
+.svc th:not(:first-child), .svc td:not(:first-child) { text-align: right; }
+.svc td { padding: 9px 0; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.svc td small { display: block; color: var(--ink-3); font-size: .72rem; }
+.svc .mono { font-size: .82rem; }
+.example { font: 500 .68rem/1 var(--f-mono); color: var(--ink-3); letter-spacing: .06em; text-transform: uppercase; }
+
+/* horarios */
+.hrs { display: grid; gap: 10px; }
+.hrs .r { display: grid; grid-template-columns: 52px 1fr; gap: 10px; align-items: center; font-size: .78rem; color: var(--ink-2); }
+.track { position: relative; height: 14px; border-radius: 4px; background: repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px calc(100% / 14)); background-color: var(--surface); border: 1px solid var(--line); }
+.track i { position: absolute; top: 2px; bottom: 2px; border-radius: 3px; background: var(--wa); }
+.track em { position: absolute; inset: 0; font-style: normal; font-size: .7rem; color: var(--ink-3); display: grid; place-items: center; }
+.axis { position: relative; height: 14px; margin-left: 62px; font: 400 .65rem/1 var(--f-mono); color: var(--ink-3); }
+.axis span { position: absolute; transform: translateX(-50%); }
+.axis span:first-child { transform: none; } .axis span:last-child { transform: translateX(-100%); }
+
+/* superposición */
+.clash { display: grid; gap: 8px; }
+.clash .row { background: var(--surface); }
+.clash .row.is-err { border-color: var(--err-line); background: var(--err-bg); }
+.clash .msg-err { font-size: .78rem; color: var(--err-fg); display: grid; grid-template-columns: 16px 1fr; gap: 6px; line-height: 1.35; }
+.clash .msg-err svg { width: 15px; height: 15px; margin-top: 1px; }
+
+/* recordatorio */
+.remind { display: grid; gap: 8px; background: var(--chat-bg); }
+.remind .msg { max-width: 92%; font-size: .82rem; line-height: 1.4; }
+
+/* bandeja */
+.inbox { display: grid; gap: 4px; }
+.convo { display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center; padding: 8px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); font-size: .8rem; }
+.convo .av { width: 30px; height: 30px; border-radius: 50%; background: var(--line); display: grid; place-items: center; font: 600 .7rem/1 var(--f-body); color: var(--ink-2); }
+.convo b { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.convo b i { width: 7px; height: 7px; border-radius: 50%; background: var(--err-fg); }
+.convo small { color: var(--ink-3); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.convo > span:nth-child(2) { min-width: 0; }
+.mode { font: 500 .66rem/1 var(--f-mono); letter-spacing: .04em; text-transform: uppercase; padding: 4px 6px; border-radius: 4px; }
+.mode.ia { background: var(--ok-bg); color: var(--ok-fg); }
+.mode.hum { background: var(--pend-bg); color: var(--pend-fg); }
+
+/* pacientes */
+.ficha { display: grid; gap: 6px; font-size: .82rem; }
+.ficha .kv { display: grid; grid-template-columns: 82px 1fr; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.ficha .kv:last-child { border-bottom: 0; }
+.ficha .kv span:first-child { color: var(--ink-3); }
+.ficha .no { color: var(--ink-3); text-decoration: line-through; }
+
+/* Captura real */
+.shot { margin: 0; display: grid; gap: 14px; }
+.browser {
+  border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.browser-bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.browser-bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.browser-bar span { margin-left: 10px; font: 400 .72rem/1 var(--f-mono); color: var(--ink-3); }
+.shot figcaption { font-size: .875rem; color: var(--ink-3); }
+.shot-scroll { overflow-x: auto; }
+
+/* Control */
+.control { display: grid; gap: 40px; }
+@media (min-width: 900px) { .control { grid-template-columns: 5fr 7fr; gap: 64px; align-items: start; } }
+.rules { list-style: none; margin: 0; padding: 0; display: grid; }
+.rules li { display: grid; grid-template-columns: 32px 1fr; gap: 14px; padding: 20px 0; border-top: 1px solid var(--line); }
+.rules li:last-child { border-bottom: 1px solid var(--line); }
+.rules svg { width: 22px; height: 22px; color: var(--wa-text); margin-top: 3px; }
+.rules b { display: block; font-weight: 600; margin-bottom: 2px; }
+.rules p { color: var(--ink-2); }
+.switch {
+  display: inline-grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 999px;
+  background: var(--sunk); border: 1px solid var(--line); font-size: .85rem; font-weight: 500; margin-top: 8px;
+}
+.switch span { padding: 8px 18px; border-radius: 999px; text-align: center; color: var(--ink-3); }
+.switch span.on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+
+/* Para quién */
+.who-list { display: flex; flex-wrap: wrap; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.who-list li {
+  font: 600 clamp(1.05rem, .95rem + .6vw, 1.45rem)/1 var(--f-display); font-variation-settings: "wdth" 88;
+  padding: 14px 20px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
+}
+
+/* FAQ */
+.faq { display: grid; gap: 0; max-width: 820px; }
+.faq details { border-top: 1px solid var(--line); }
+.faq details:last-child { border-bottom: 1px solid var(--line); }
+.faq summary {
+  list-style: none; cursor: pointer; padding: 22px 44px 22px 0; position: relative;
+  font: 650 1.15rem/1.3 var(--f-display); font-variation-settings: "wdth" 94;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after {
+  content: ""; position: absolute; right: 6px; top: 50%; width: 14px; height: 14px; margin-top: -9px;
+  border-right: 2px solid var(--ink-3); border-bottom: 2px solid var(--ink-3); transform: rotate(45deg);
+  transition: transform .25s;
+}
+.faq details[open] summary::after { transform: rotate(-135deg); margin-top: -2px; }
+.faq details p { padding: 0 0 22px; color: var(--ink-2); max-width: 64ch; }
+.faq details a { color: var(--wa-text); font-weight: 500; }
+
+/* Cierre */
+.closing { background: var(--night); color: var(--night-ink); position: relative; overflow: hidden; isolation: isolate; }
+.closing::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: radial-gradient(55% 80% at 50% 120%, oklch(0.6 0.17 152 / 0.35), transparent 70%);
+}
+.closing .wrap { display: grid; gap: 28px; justify-items: center; text-align: center; }
+.closing .h2 { font-size: clamp(2.2rem, 1.4rem + 3.8vw, 4.2rem); max-width: 16ch; }
+.closing .lede { color: var(--night-ink-2); text-align: center; }
+.closing .alt { font-size: .9rem; color: var(--night-ink-2); }
+.closing .alt .mono { color: var(--night-ink); font-size: .9rem; user-select: all; }
+
+footer { background: var(--night); color: var(--night-ink-2); border-top: 1px solid var(--night-line); font-size: .85rem; padding-block: 28px calc(28px + env(safe-area-inset-bottom, 0px)); }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+@media (max-width: 899px) { footer { padding-bottom: calc(108px + env(safe-area-inset-bottom, 0px)); } }
+
+/* Barra fija en el teléfono */
+.dock {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in oklch, var(--bg) 82%, transparent);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+  transform: translateY(110%); transition: transform .35s cubic-bezier(.2,.8,.2,1);
+}
+.dock.is-on { transform: none; }
+.dock .btn-wa { width: 100%; }
+@media (min-width: 900px) { .dock { display: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-wa" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.2a9.8 9.8 0 0 0-8.43 14.8L2.2 21.8l4.9-1.3A9.8 9.8 0 1 0 12 2.2Zm0 1.8a8 8 0 1 1-4.1 14.87l-.3-.18-2.9.77.78-2.83-.2-.31A8 8 0 0 1 12 4Zm-3.3 3.9c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.08c.15.2 2.08 3.17 5.03 4.45 2.46 1.06 2.96.85 3.5.8.53-.05 1.72-.7 1.96-1.38.24-.68.24-1.26.17-1.38-.07-.12-.27-.2-.56-.34-.3-.15-1.72-.85-1.99-.95-.27-.1-.46-.15-.66.15-.2.29-.76.94-.93 1.14-.17.2-.34.22-.63.07-.3-.15-1.24-.46-2.37-1.46-.87-.78-1.46-1.74-1.63-2.03-.17-.3-.02-.45.13-.6.13-.13.3-.34.44-.51.15-.17.2-.3.3-.49.1-.2.05-.37-.03-.51-.07-.15-.65-1.6-.9-2.18-.23-.57-.47-.49-.65-.5h-.55Z"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M8 2.5v4M16 2.5v4M3 9.5h18M9 15l2 2 4-4"/></g></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z"/></g></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></g></symbol>
+  <symbol id="i-replay" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.5V6L12 3Z"/></symbol>
+  <symbol id="i-person" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></g></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></g></symbol>
+  <symbol id="i-file-x" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z"/><path d="M14 3v5h5M10 12l4 4M14 12l-4 4"/></g></symbol>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#" aria-label="Turnos, inicio">
+      <span class="logo-mark"><svg><use href="#i-cal"/></svg></span>
+      <b>Turnos</b>
+    </a>
+    <nav class="nav" aria-label="Secciones">
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#funciones">Funciones</a>
+      <a href="#preguntas">Preguntas</a>
+    </nav>
+    <a class="btn-wa" data-wa data-wa-from="header" data-wa-msg="Hola! Vi la web de Turnos y quiero saber más para mi consultorio." href="https://wa.me/5490000000000" target="_blank" rel="noopener">
+      <svg aria-hidden="true"><use href="#i-wa"/></svg>Escribinos
+    </a>
+  </div>
+</header>
+
+<main>
+<section class="hero" aria-labelledby="titulo">
+  <div class="hours" aria-hidden="true">
+    <span>08:00</span><span>09:00</span><span>10:00</span><span>11:00</span><span>12:00</span><span>13:00</span><span>14:00</span><span>15:00</span><span>16:00</span><span>17:00</span><span>18:00</span><span>19:00</span>
+  </div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="pill"><i></i>Agenda + WhatsApp para consultorios</span>
+      <h1 id="titulo">Tus pacientes ya te escriben por WhatsApp. <em>Que el turno se agende solo.</em></h1>
+      <p class="lede">Turnos ordena la agenda de tu consultorio, manda los recordatorios y suma un bot que <strong>responde, ofrece horarios libres y reserva el turno</strong> respetando tus horarios de atención.</p>
+      <div class="cta-row">
+        <a class="btn-wa is-lg" data-wa data-wa-from="hero" data-wa-msg="Hola! Vi la web de Turnos y quiero saber más para mi consultorio." href="https://wa.me/5490000000000" target="_blank" rel="noopener">
+          <svg aria-hidden="true"><use href="#i-wa"/></svg>Consultanos por WhatsApp
+        </a>
+        <a class="btn-ghost" href="#como-funciona">Ver cómo funciona ↓</a>
+      </div>
+      <p class="cta-note"><svg aria-hidden="true"><use href="#i-check"/></svg>Sin formularios: nos escribís y te respondemos nosotros.</p>
+      <ul class="facts" aria-label="Incluye">
+        <li>Agenda por profesional</li>
+        <li>Recordatorios por WhatsApp</li>
+        <li>Sin turnos superpuestos</li>
+      </ul>
+    </div>
+
+    <div class="stage" id="escena">
+      <div class="phone">
+        <div class="screen">
+          <div class="chat-head">
+            <span class="avatar"><svg><use href="#i-cal"/></svg></span>
+            <span><b>Consultorio Méndez</b><span class="chat-status" id="estado">en línea</span></span>
+            <button class="replay" type="button" id="repetir" hidden aria-label="Ver la charla de nuevo" title="Ver de nuevo"><svg aria-hidden="true"><use href="#i-replay"/></svg></button>
+          </div>
+          <div class="chat" id="chat" aria-label="Ejemplo: un paciente pide turno por WhatsApp y el bot se lo reserva">
+            <span class="day-tag">Hoy</span>
+            <div class="msg out" data-t="pac"><span>Hola! Quería un turno para consulta con la Dra. Méndez</span><time>21:47</time></div>
+            <div class="msg in" data-t="bot"><span>¡Hola! Para darte el turno, ¿me decís tu nombre y apellido?</span><time>21:47</time></div>
+            <div class="msg out" data-t="pac"><span>Mateo Sosa</span><time>21:48</time></div>
+            <div class="msg in" data-t="bot"><span>Gracias, Mateo. La Dra. Laura Méndez tiene lugar el jueves 15/10. ¿Qué horario te queda mejor?</span>
+              <div class="slots"><span class="is-picked">10:00</span><span>11:30</span><span>12:30</span></div><time>21:48</time></div>
+            <div class="msg out" data-t="pac"><span>10:00</span><time>21:48</time></div>
+            <div class="msg in" data-t="bot" data-final><span>Listo, te reservé el jueves 15/10 a las 10:00 hs con la Dra. Laura Méndez. El día anterior te mandamos un recordatorio.</span><time>21:48</time></div>
+          </div>
+          <div class="composer" aria-hidden="true"><span>Mensaje</span><i></i></div>
+        </div>
+      </div>
+
+      <div class="agenda-card" aria-label="La agenda del consultorio con el turno nuevo">
+        <div class="toast" id="toast"><svg aria-hidden="true"><use href="#i-check"/></svg>Turno agendado por el bot</div>
+        <div class="ac-head"><b>Jueves 15 de octubre</b><span>Dra. Laura Méndez · 4 turnos</span></div>
+        <div class="ac-rows">
+          <div class="row"><span class="mono">09:30</span><span>Facundo Ríos <span class="chip ok">Confirmado</span><small>Consulta</small></span></div>
+          <div class="row is-new" id="nuevo"><span class="mono">10:00</span><span data-slot><span data-lleno>Mateo Sosa <span class="chip pend">Pendiente</span><small>Consulta · por WhatsApp</small></span></span></div>
+          <div class="row"><span class="mono">11:00</span><span>Lucía Benítez <span class="chip pend">Pendiente</span><small>Consulta</small></span></div>
+          <div class="row is-free"><span class="mono">11:30</span><span>Libre</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="t-suena">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">¿Te suena?</span>
+      <h2 class="h2" id="t-suena">El WhatsApp del consultorio no para. Turnos contesta por vos.</h2>
+      <p class="lede">Cada mensaje es alguien del equipo (o vos) que deja lo que está haciendo para buscar en la agenda, contestar y anotar. Así se resuelve cada uno.</p>
+    </div>
+    <div class="pains">
+      <div class="pain">
+        <p class="bubble"><time><b>23:41</b> · Paciente nuevo</time>Hola, ¿tenés turno para mañana?</p>
+        <div class="answer"><span class="dot"><svg aria-hidden="true"><use href="#i-check"/></svg></span>
+          <p><strong>El bot ofrece horarios libres y reserva.</strong> Pide nombre y servicio, busca lugar en la agenda del profesional y deja el turno cargado, aunque sea medianoche.</p></div>
+      </div>
+      <div class="pain">
+        <p class="bubble"><time><b>18:30</b> · Recordatorio</time>Sí, confirmo. Mañana estoy.</p>
+        <div class="answer"><span class="dot"><svg aria-hidden="true"><use href="#i-check"/></svg></span>
+          <p><strong>El turno pasa a Confirmado solo.</strong> El recordatorio sale con la anticipación que elijas y, si el paciente contesta que sí, la agenda se actualiza.</p></div>
+      </div>
+      <div class="pain">
+        <p class="bubble"><time><b>07:12</b> · Paciente</time>Perdón, hoy no llego. ¿Lo podemos pasar?</p>
+        <div class="answer"><span class="dot"><svg aria-hidden="true"><use href="#i-check"/></svg></span>
+          <p><strong>Lo que necesita una persona, le llega a una persona.</strong> Cancelaciones y cambios pasan al equipo y la charla queda marcada como «Requiere atención».</p></div>
+      </div>
+      <div class="pain">
+        <p class="bubble"><time><b>13:05</b> · Recepción</time>Ya te anoté a las 16… ah no, a esa hora ya hay alguien.</p>
+        <div class="answer"><span class="dot"><svg aria-hidden="true"><use href="#i-check"/></svg></span>
+          <p><strong>Dos turnos en el mismo horario no entran.</strong> La agenda no deja superponer turnos del mismo profesional ni dar uno fuera de su horario de atención.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="como-funciona" aria-labelledby="t-flujo" style="background: var(--sunk); border-block: 1px solid var(--line);">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Cómo funciona</span>
+      <h2 class="h2" id="t-flujo">Un turno, de punta a punta, sin que nadie atienda el teléfono.</h2>
+    </div>
+    <ol class="flow">
+      <li class="step"><span class="who">Paciente</span><h3>Escribe por WhatsApp</h3><p>Al número del consultorio, a la hora que sea. El bot lo reconoce por el teléfono si ya es paciente.</p></li>
+      <li class="step"><span class="who">Bot</span><h3>Ofrece horarios</h3><p>Pide nombre y servicio y busca lugar dentro de los horarios de atención, sin pisar otros turnos.</p></li>
+      <li class="step"><span class="who">Agenda</span><h3>Queda reservado</h3><p>El turno aparece en la agenda del día con servicio, profesional y estado Pendiente.</p></li>
+      <li class="step"><span class="who">Recordatorio</span><h3>Se confirma</h3><p>Antes del turno le llega un recordatorio. Contesta «sí» y pasa a Confirmado.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="section" id="funciones" aria-labelledby="t-func">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Funciones</span>
+      <h2 class="h2" id="t-func">Todo lo que tu recepción hace a mano, en un solo lugar.</h2>
+    </div>
+
+    <div class="bento">
+      <article class="tile span-4">
+        <h3>Agenda del día y de la semana</h3>
+        <p>Filtrá por profesional, mirá el estado de cada turno y reprogramá en dos clics. Las horas siempre en la zona del consultorio.</p>
+        <div class="mock" aria-hidden="true">
+          <div class="week">
+            <div class="col"><b>Lun 12/10</b><div class="t ok"><span class="mono">11:30</span><span>Hernán Molina</span></div><div class="t ok"><span class="mono">16:00</span><span>Inés Villalba</span></div></div>
+            <div class="col"><b class="is-today">Mar 13/10</b><div class="t ok"><span class="mono">10:00</span><span>Bruno Castillo</span></div><div class="t pend"><span class="mono">11:00</span><span>Camila Herrera</span></div><div class="t ok"><span class="mono">17:00</span><span>Elena Suárez</span></div></div>
+            <div class="col"><b>Mié 14/10</b><div class="t pend"><span class="mono">09:30</span><span>Facundo Ríos</span></div><div class="t ok"><span class="mono">10:00</span><span>Julián Acosta</span></div></div>
+            <div class="col"><b>Jue 15/10</b><div class="t pend"><span class="mono">10:00</span><span>Mateo Sosa</span></div><div class="t pend"><span class="mono">14:00</span><span>Ana Belén Torres</span></div></div>
+            <div class="col"><b>Vie 16/10</b><div class="t pend"><span class="mono">09:00</span><span>Gabriela Ortiz</span></div></div>
+          </div>
+          <p class="tz"><svg><use href="#i-globe"/></svg>Horarios en America/Argentina/Buenos_Aires (UTC−03:00)</p>
+        </div>
+      </article>
+
+      <article class="tile span-2">
+        <h3>Sin superposiciones</h3>
+        <p>La base de datos no deja cargar dos turnos a la vez para el mismo profesional.</p>
+        <div class="mock clash" aria-hidden="true">
+          <div class="row"><span class="mono">16:00</span><span>Diego Paz<small>Dra. Laura Méndez</small></span></div>
+          <div class="row is-err"><span class="mono">16:15</span><span>Turno nuevo<small>Dra. Laura Méndez</small></span></div>
+          <p class="msg-err"><svg><use href="#i-alert"/></svg>Ese horario se superpone con otro turno de la misma agenda.</p>
+        </div>
+      </article>
+
+      <article class="tile span-3">
+        <h3>Servicios con sus precios</h3>
+        <p>Cada servicio con su duración, quién lo hace y cuánto sale: precio de lista, en efectivo y por transferencia.</p>
+        <div class="mock">
+          <table class="svc">
+            <thead><tr><th>Servicio <span class="sr">(ejemplo)</span></th><th>Lista</th><th>Efectivo</th></tr></thead>
+            <tbody>
+              <tr><td>Consulta<small>30 min · Dra. Méndez</small></td><td class="mono">$ 45.000</td><td class="mono">$ 40.000</td></tr>
+              <tr><td>Sesión de kinesiología<small>45 min · Lic. Ferreyra</small></td><td class="mono">$ 32.000</td><td class="mono">$ 29.000</td></tr>
+              <tr><td>Evaluación postural<small>60 min · Lic. Ferreyra</small></td><td class="mono">$ 38.000</td><td class="mono">$ 35.000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <span class="example">Precios de ejemplo</span>
+      </article>
+
+      <article class="tile span-3">
+        <h3>Horarios de atención</h3>
+        <p>Un horario general y uno propio por profesional o por sede. Fuera de horario, no se dan turnos.</p>
+        <div class="mock hrs" role="img" aria-label="Lunes a viernes de 8 a 13 y de 14 a 20; sábados de 9 a 13; domingos no se atiende.">
+          <div class="r"><span>Lun–Vie</span><span class="track"><i style="left:7.14%;width:35.71%"></i><i style="left:50%;width:42.86%"></i></span></div>
+          <div class="r"><span>Sábado</span><span class="track"><i style="left:14.29%;width:28.57%"></i></span></div>
+          <div class="r"><span>Domingo</span><span class="track"><em>No se atiende</em></span></div>
+          <div class="axis" aria-hidden="true"><span style="left:0">07</span><span style="left:50%">14</span><span style="left:100%">21</span></div>
+        </div>
+      </article>
+
+      <article class="tile span-2">
+        <h3>Recordatorios</h3>
+        <p>Automáticos o con un clic, con la anticipación que elijas. Nunca sale dos veces el mismo.</p>
+        <div class="mock remind" aria-hidden="true">
+          <div class="msg out">¡Hola Ana! Te recordamos tu turno en Consultorio Méndez con Dra. Laura Méndez el miércoles 14 de octubre a las 09:30 hs. Si no podés venir o necesitás cambiar el horario, respondé este mensaje. ¡Gracias!<time>Mar 09:30</time></div>
+          <div class="msg in">Dale, confirmo 👍<time>09:41</time></div>
+        </div>
+      </article>
+
+      <article class="tile span-2">
+        <h3>Bandeja de WhatsApp</h3>
+        <p>Todas las charlas con la ficha del paciente al lado. Cada una en modo bot o humano.</p>
+        <div class="mock inbox" aria-hidden="true">
+          <div class="convo"><span class="av">CH</span><span><b><i></i>Camila Herrera</b><small>¿Lo puedo pasar al viernes?</small></span><span class="mode hum">Humano</span></div>
+          <div class="convo"><span class="av">JA</span><span><b>Julián Acosta</b><small>Perfecto, gracias!</small></span><span class="mode ia">Bot</span></div>
+          <div class="convo"><span class="av">MS</span><span><b>Mateo Sosa</b><small>10:00</small></span><span class="mode ia">Bot</span></div>
+        </div>
+      </article>
+
+      <article class="tile span-2">
+        <h3>Pacientes, sin datos clínicos</h3>
+        <p>Contacto y notas administrativas. La historia clínica queda afuera a propósito.</p>
+        <div class="mock ficha" aria-hidden="true">
+          <div class="kv"><span>Paciente</span><span>Ana Belén Torres</span></div>
+          <div class="kv"><span>Teléfono</span><span class="mono">+54 9 351 555-0101</span></div>
+          <div class="kv"><span>Nota</span><span>Prefiere turnos a la tarde</span></div>
+          <div class="kv"><span>Diagnóstico</span><span class="no">No se guarda</span></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="t-captura" style="padding-top: 0;">
+  <div class="wrap">
+    <figure class="shot">
+      <div class="browser">
+        <div class="browser-bar" aria-hidden="true"><i></i><i></i><i></i><span>Agenda · Semana del 12 al 18 de octubre</span></div>
+        <div class="shot-scroll">
+          <img src="agenda-semana.webp" width="1280" height="1186" loading="lazy" decoding="async" alt="Captura de la agenda semanal de Turnos: siete columnas de lunes a domingo con los turnos de cada día, su horario, paciente, servicio, profesional y estado (pendiente, confirmado, realizado o cancelado).">
+        </div>
+      </div>
+      <figcaption id="t-captura">Así se ve la agenda semanal por dentro, con datos de ejemplo.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="t-control" style="background: var(--sunk); border-block: 1px solid var(--line);">
+  <div class="wrap control">
+    <div class="section-head" style="margin-bottom:0">
+      <span class="eyebrow">Vos tenés el control</span>
+      <h2 class="h2" id="t-control">El bot ayuda. Las decisiones siguen siendo tuyas.</h2>
+      <p class="lede">Elegís qué hace solo y qué pasa por tu equipo. Cualquier conversación se puede tomar a mano cuando quieras.</p>
+      <div class="switch" aria-hidden="true"><span class="on">Bot</span><span>Humano</span></div>
+    </div>
+    <ul class="rules">
+      <li><svg aria-hidden="true"><use href="#i-shield"/></svg><div><b>Nunca da consejos médicos</b><p>Responde temas administrativos con la información que cargues del consultorio. Lo demás lo deriva.</p></div></li>
+      <li><svg aria-hidden="true"><use href="#i-person"/></svg><div><b>Cambios y cancelaciones, a una persona</b><p>El bot no toca un turno ya dado: avisa al equipo y marca la charla para que la atiendan.</p></div></li>
+      <li><svg aria-hidden="true"><use href="#i-cal"/></svg><div><b>Dar turnos es opcional</b><p>Se prende en Configuración. Si lo dejás apagado, el bot junta los datos y le pasa la charla al equipo.</p></div></li>
+      <li><svg aria-hidden="true"><use href="#i-qr"/></svg><div><b>Tu número, vinculado con un QR</b><p>Se conecta como un dispositivo vinculado de WhatsApp. Conviene un número dedicado al consultorio.</p></div></li>
+      <li><svg aria-hidden="true"><use href="#i-file-x"/></svg><div><b>Sin historia clínica</b><p>No guarda diagnósticos ni tratamientos. Los recordatorios solo llevan nombre, fecha, hora y profesional.</p></div></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="t-quien">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Para quién es</span>
+      <h2 class="h2" id="t-quien">Consultorios de uno o varios profesionales, en una o varias sedes.</h2>
+    </div>
+    <ul class="who-list">
+      <li>Kinesiología</li><li>Odontología</li><li>Medicina estética</li><li>Psicología</li><li>Nutrición</li><li>Clínica médica</li><li>Fonoaudiología</li><li>Dermatología</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section" id="preguntas" aria-labelledby="t-faq" style="padding-top: 0;">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Preguntas frecuentes</span>
+      <h2 class="h2" id="t-faq">Lo que nos suelen preguntar.</h2>
+    </div>
+    <div class="faq">
+      <details open><summary>¿Cuánto sale?</summary>
+        <p>Depende de cuántos profesionales y sedes tenga tu consultorio. <a data-wa data-wa-from="faq-precio" data-wa-msg="Hola! Quiero saber cuánto sale Turnos para mi consultorio." href="https://wa.me/5490000000000" target="_blank" rel="noopener">Escribinos por WhatsApp</a> y te pasamos el precio para tu caso.</p></details>
+      <details><summary>¿Necesito la API oficial de WhatsApp o un proveedor aparte?</summary>
+        <p>No. El bot se vincula al WhatsApp del consultorio escaneando un QR, igual que WhatsApp Web. Te recomendamos usar un número dedicado al consultorio.</p></details>
+      <details><summary>¿El bot puede equivocarse con un turno?</summary>
+        <p>Solo ofrece horarios dentro de tus horarios de atención y que no se pisen con otros turnos. Los turnos que da quedan en Pendiente, como uno cargado a mano, y ante cualquier duda pasa la charla a una persona.</p></details>
+      <details><summary>¿Puedo seguir dando turnos yo, a mano?</summary>
+        <p>Sí. La agenda funciona igual con o sin bot. Podés cargar, reprogramar y cancelar turnos desde el panel, y mandar recordatorios con un clic.</p></details>
+      <details><summary>¿Guarda información clínica de los pacientes?</summary>
+        <p>No. Turnos guarda datos de contacto y notas administrativas. Diagnósticos, tratamientos e historia clínica quedan afuera a propósito.</p></details>
+      <details><summary>¿Sirve si trabajamos varios profesionales o en varias sedes?</summary>
+        <p>Sí. Cada profesional tiene su agenda y su horario de atención, que puede ser distinto en cada sede. Recepción ve todo; la configuración la cambia quien administra.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="section closing" aria-labelledby="t-cierre">
+  <div class="wrap">
+    <span class="eyebrow">Hablemos</span>
+    <h2 class="h2" id="t-cierre">Contanos cómo das turnos hoy.</h2>
+    <p class="lede">Te mostramos Turnos funcionando y vemos juntos cómo quedaría con tus profesionales, servicios y horarios.</p>
+    <a class="btn-wa is-lg" data-wa data-wa-from="cierre" data-wa-msg="Hola! Quiero ver cómo funcionaría Turnos en mi consultorio." href="https://wa.me/5490000000000" target="_blank" rel="noopener">
+      <svg aria-hidden="true"><use href="#i-wa"/></svg>Escribinos por WhatsApp
+    </a>
+    <p class="alt">o agendá el número: <span class="mono" data-wa-numero>+54 9 000 000-0000</span></p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Turnos · Agenda y recordatorios para consultorios</span>
+    <span>© 2026</span>
+  </div>
+</footer>
+
+<div class="dock" id="dock">
+  <a class="btn-wa" data-wa data-wa-from="dock" data-wa-msg="Hola! Vi la web de Turnos y quiero saber más para mi consultorio." href="https://wa.me/5490000000000" target="_blank" rel="noopener">
+    <svg aria-hidden="true"><use href="#i-wa"/></svg>Consultanos por WhatsApp
+  </a>
+</div>
+
+<script>
+(function () {
+  var cfg = window.TURNOS || {};
+  var numero = String(cfg.whatsapp || "").replace(/\D/g, "");
+
+  // Links de WhatsApp: número + mensaje precargado, y evento "Contact" para Meta.
+  document.querySelectorAll("[data-wa]").forEach(function (a) {
+    var msg = a.getAttribute("data-wa-msg") || "";
+    a.href = "https://wa.me/" + numero + (msg ? "?text=" + encodeURIComponent(msg) : "");
+    a.addEventListener("click", function () {
+      if (typeof window.fbq === "function") {
+        window.fbq("track", "Contact", { content_name: a.getAttribute("data-wa-from") || "web" });
+      }
+    });
+  });
+
+  // Número visible, con formato argentino (+54 9 351 123-4567).
+  var m = numero.match(/^549(\d{3})(\d{3})(\d{4})$/);
+  document.querySelectorAll("[data-wa-numero]").forEach(function (el) {
+    el.textContent = m ? "+54 9 " + m[1] + " " + m[2] + "-" + m[3] : "+" + numero;
+  });
+
+  // Barra fija en el teléfono: aparece cuando el botón del hero sale de pantalla.
+  var dock = document.getElementById("dock");
+  var heroCta = document.querySelector(".hero .btn-wa");
+  var closing = document.querySelector(".closing");
+  if ("IntersectionObserver" in window && dock && heroCta) {
+    var heroVisible = true, closingVisible = false;
+    var sync = function () { dock.classList.toggle("is-on", !heroVisible && !closingVisible); };
+    new IntersectionObserver(function (e) { heroVisible = e[0].isIntersecting; sync(); }).observe(heroCta);
+    new IntersectionObserver(function (e) { closingVisible = e[0].isIntersecting; sync(); }).observe(closing);
+  }
+
+  // Escena del hero: la charla se reproduce una vez y el turno cae en la agenda.
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var chat = document.getElementById("chat");
+  var msgs = Array.prototype.slice.call(chat.querySelectorAll(".msg"));
+  var estado = document.getElementById("estado");
+  var nuevo = document.getElementById("nuevo");
+  var slot = nuevo.querySelector("[data-slot]");
+  var lleno = nuevo.querySelector("[data-lleno]");
+  var toast = document.getElementById("toast");
+  var repetir = document.getElementById("repetir");
+  var timers = [];
+  var libre = document.createElement("span");
+  libre.textContent = "Libre";
+
+  function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+  function setSlot(ocupado) {
+    nuevo.classList.toggle("is-free", !ocupado);
+    nuevo.classList.toggle("is-new", ocupado);
+    slot.replaceChildren(ocupado ? lleno : libre);
+  }
+  function play() {
+    timers.forEach(clearTimeout); timers = [];
+    repetir.hidden = true;
+    msgs.forEach(function (el) { el.hidden = true; el.classList.remove("is-entering"); });
+    setSlot(false);
+    toast.classList.add("is-hidden");
+    var t = 500;
+    msgs.forEach(function (el) {
+      var bot = el.getAttribute("data-t") === "bot";
+      if (bot) {
+        later(function () { estado.textContent = "escribiendo…"; estado.classList.add("is-typing"); }, t);
+        t += 1300;
+      } else {
+        t += 900;
+      }
+      later(function () {
+        el.hidden = false; el.classList.add("is-entering");
+        estado.textContent = "en línea"; estado.classList.remove("is-typing");
+        if (el.hasAttribute("data-final")) {
+          later(function () {
+            setSlot(true); nuevo.classList.remove("flash"); void nuevo.offsetWidth; nuevo.classList.add("flash");
+            toast.classList.remove("is-hidden");
+          }, 450);
+          later(function () { repetir.hidden = false; }, 1400);
+        }
+      }, t);
+      t += 250;
+    });
+  }
+  repetir.addEventListener("click", play);
+
+  if (!reduce && "IntersectionObserver" in window) {
+    var started = false;
+    new IntersectionObserver(function (e, obs) {
+      if (e[0].isIntersecting && !started) { started = true; obs.disconnect(); play(); }
+    }, { threshold: 0.35 }).observe(document.getElementById("escena"));
+  }
+})();
+</script>
+</body>
+</html>
