@@ -84,3 +84,16 @@ export function esPedidoDeCambio(texto: string): boolean {
     t,
   );
 }
+
+/**
+ * Pasa el markdown que a veces escribe el LLM al formato de WhatsApp:
+ * **negrita** → *negrita*, sin títulos (#) ni viñetas con asterisco.
+ */
+export function textoWhatsapp(texto: string): string {
+  return texto
+    .replace(/\*\*(.+?)\*\*/g, "*$1*")
+    .replace(/__(.+?)__/g, "_$1_")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/^\s*\*\s+/gm, "- ")
+    .trim();
+}

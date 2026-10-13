@@ -1,5 +1,5 @@
 import type { ChatCompletionTool } from "openai/resources/chat/completions";
-import { agendarTurno, buscarDisponibilidad } from "./agenda.js";
+import { agendarTurno, buscarDisponibilidad, faltaNombre } from "./agenda.js";
 import type { WaConversacionFila } from "./db.js";
 
 /**
@@ -18,14 +18,22 @@ export const DEFINICIONES: ChatCompletionTool[] = [
       parameters: {
         type: "object",
         properties: {
+          nombre_completo: {
+            type: "string",
+            description: "Nombre y apellido del paciente (si ya figura completo en \"Quién escribe\", ese).",
+          },
           servicio_id: { type: "string", description: "id del servicio, de la lista de servicios." },
           profesional_id: {
             type: "string",
             description: "id del profesional, si el paciente eligió uno. Omitir si le da igual.",
           },
-          desde: { type: "string", description: "Primer día a buscar, YYYY-MM-DD. Por defecto, hoy." },
+          desde: {
+            type: "string",
+            description: "Primer día a buscar, YYYY-MM-DD tomado del calendario. Por defecto, hoy.",
+          },
           dias: { type: "integer", description: "Cuántos días buscar desde `desde` (1 a 14). Por defecto 7." },
         },
+        required: ["nombre_completo"],
         additionalProperties: false,
       },
     },
@@ -46,7 +54,7 @@ export const DEFINICIONES: ChatCompletionTool[] = [
             type: "string",
             description: "El profesional_id del horario elegido (si tenía).",
           },
-          fecha: { type: "string", description: "YYYY-MM-DD" },
+          fecha: { type: "string", description: "YYYY-MM-DD, la `fecha` del horario elegido o del calendario." },
           hora: { type: "string", description: "HH:MM, hora de inicio." },
         },
         required: ["nombre_completo", "fecha", "hora"],
@@ -74,7 +82,9 @@ export async function ejecutarHerramienta(
   }
 
   switch (nombre) {
-    case "consultar_disponibilidad":
+    case "consultar_disponibilidad": {
+      const sinNombre = await faltaNombre(conversacion, texto(args.nombre_completo));
+      if (sinNombre) return JSON.stringify({ error: sinNombre });
       return JSON.stringify(
         await buscarDisponibilidad({
           servicioId: texto(args.servicio_id),
@@ -83,6 +93,7 @@ export async function ejecutarHerramienta(
           dias: typeof args.dias === "number" ? args.dias : undefined,
         }),
       );
+    }
     case "agendar_turno": {
       const resultado = await agendarTurno(conversacion, {
         nombreCompleto: texto(args.nombre_completo),

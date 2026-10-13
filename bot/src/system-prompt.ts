@@ -51,6 +51,25 @@ function hoyEn(zona: string): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: zona }).format(new Date());
 }
 
+function sumarDias(fecha: string, dias: number): string {
+  const d = new Date(`${fecha}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + dias);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Calendario de las próximas dos semanas con la fecha ISO de cada día. Los
+ * resultados de las herramientas no quedan en el historial: cuando el paciente
+ * dice "dale" o "el jueves", el LLM tiene que reconstruir la fecha y, sin esto,
+ * le pifia al año o al día de la semana.
+ */
+function calendario(hoy: string): string {
+  return Array.from({ length: 15 }, (_, i) => {
+    const fecha = sumarDias(hoy, i);
+    return `- ${fechaLarga(fecha)} = ${fecha}${i === 0 ? " (hoy)" : i === 1 ? " (mañana)" : ""}`;
+  }).join("\n");
+}
+
 function bloqueConsultorio(c: Consultorio): string {
   const profesionales =
     c.profesionales.length === 0
@@ -61,13 +80,18 @@ function bloqueConsultorio(c: Consultorio): string {
               `- ${p.nombre}${p.especialidad ? ` (${p.especialidad})` : ""} [profesional_id: ${p.id}]`,
           )
           .join("\n");
+  const hoy = hoyEn(c.zonaHoraria);
   return [
     "## Datos del sistema (en vivo)",
     "",
     `- Consultorio: ${c.nombre}`,
-    `- Hoy es ${fechaLarga(hoyEn(c.zonaHoraria))} (zona ${c.zonaHoraria}).`,
-    "- Profesionales que atienden:",
+    `- Hoy es ${fechaLarga(hoy)} de ${hoy.slice(0, 4)} (${hoy}, zona ${c.zonaHoraria}).`,
+    "- Profesionales que atienden (la especialidad no es un servicio):",
     profesionales,
+    "",
+    "Próximos días. Para pasar una fecha a una herramienta, buscala acá y usá la fecha",
+    "YYYY-MM-DD exacta; nunca calcules vos el año ni el día de la semana:",
+    calendario(hoy),
   ].join("\n");
 }
 
@@ -119,10 +143,11 @@ function bloqueServicios(servicios: ServicioBot[]): string {
 }
 
 const DATOS_TURNO_NUEVO = [
-  "- **Nombre y apellido.** Si no figura en \"Quién escribe\", o figura solo el nombre de pila, pedíselo.",
-  "- **Qué servicio** quiere, de la lista de servicios (si hay). Preguntá solo cuál servicio: nunca",
+  "- Nombre y apellido: si no figura en \"Quién escribe\", o figura solo el nombre de pila, pedíselo",
+  "  (aunque se presente con el nombre, hace falta el apellido).",
+  "- Qué servicio quiere, de la lista de servicios (si hay). Preguntá solo cuál servicio: nunca",
   "  síntomas, motivos médicos ni datos clínicos. Si lo que pide no encaja con ningún servicio, derivá.",
-  "- **Con qué profesional**, si el servicio no tiene uno fijo y atiende más de uno (o si le da igual).",
+  "- Con qué profesional, si el servicio no tiene uno fijo y atiende más de uno (o si le da igual).",
 ].join("\n");
 
 function bloqueTurnosNuevos(agendaActiva: boolean): string {
@@ -135,7 +160,7 @@ function bloqueTurnosNuevos(agendaActiva: boolean): string {
       "sin volver a pedir lo que ya te dijo):",
       "",
       DATOS_TURNO_NUEVO,
-      "- **Qué días y horarios** le quedan cómodos.",
+      "- Qué días y horarios le quedan cómodos.",
       "",
       "Con eso, avisá que el equipo le confirma el turno y derivá. Si no quiere dar algún dato o",
       "insiste en hablar con una persona, derivá igual.",
@@ -145,20 +170,31 @@ function bloqueTurnosNuevos(agendaActiva: boolean): string {
     "## Turnos nuevos (los das vos)",
     "",
     "Esto manda sobre lo que diga más arriba sobre sacar turnos: podés dar turnos con las",
-    "herramientas `consultar_disponibilidad` y `agendar_turno`. Pasos (pedí de a uno o dos datos",
-    "por mensaje, sin volver a pedir lo que ya te dijo):",
+    "herramientas `consultar_disponibilidad` y `agendar_turno`. Seguí estos pasos en orden (pedí",
+    "de a uno o dos datos por mensaje, sin volver a pedir lo que ya te dijo). No busques ni",
+    "ofrezcas horarios hasta tener el nombre y apellido y el servicio, aunque el paciente ya",
+    "te diga un día:",
     "",
     DATOS_TURNO_NUEVO,
-    "- **Buscá lugar** con `consultar_disponibilidad` (si dijo qué día prefiere, buscá desde ese día).",
-    "  Ofrecé 2 o 3 opciones de las que devuelve. Nunca ofrezcas un horario que la herramienta no",
-    "  devolvió ni inventes disponibilidad.",
-    "- **Antes de reservar**, repetí servicio, profesional, día y hora, y pedí que confirme.",
+    "- Buscá lugar con `consultar_disponibilidad`. Si dijo un día, pasá `desde` con la fecha de",
+    "  ese día sacada del calendario de arriba y `dias: 1`; si ese día no hay lugar, buscá de nuevo",
+    "  sin `dias` para ofrecer los más cercanos. Ofrecé 2 o 3 opciones de las que devuelve, nombrando",
+    "  el día con el campo `dia` tal cual. Nunca ofrezcas un horario que la herramienta no devolvió",
+    "  ni inventes disponibilidad.",
+    "- Antes de reservar, repetí servicio, profesional, día y hora, y pedí que confirme.",
     "- Con su confirmación, usá `agendar_turno`. Si sale bien, confirmale el turno con día, hora y",
     "  profesional. Si da error, explicale con tus palabras y ofrecé otro horario, o derivá si el",
     "  error lo pide.",
     "- Si ya tiene un turno próximo y quiere otro, o algo no se puede resolver con las herramientas, derivá.",
   ].join("\n");
 }
+
+const REGLA_FORMATO = [
+  "## Formato",
+  "",
+  "Escribís en WhatsApp: texto plano, sin markdown (nada de **, #, tablas ni listas con viñetas).",
+  "Si tenés que resumir datos, hacelo en una o dos oraciones.",
+].join("\n");
 
 const REGLA_DERIVAR = [
   "## Cómo derivar",
@@ -181,6 +217,7 @@ export async function construirSystemPrompt(
     bloquePaciente(paciente),
     bloqueServicios(servicios),
     bloqueTurnosNuevos(agendaActiva),
+    REGLA_FORMATO,
     REGLA_DERIVAR,
   ].join("\n\n---\n\n");
 }
