@@ -35,6 +35,36 @@ services:
       timeout: 5s
       retries: 10
 
+  # Bot de WhatsApp (Baileys). Opcional: levantalo con
+  # `docker compose up -d --build bot`. No expone puertos: el panel es la
+  # sección WhatsApp de la app. Ver bot/README.md.
+  bot:
+    build: ./bot
+    container_name: consultorios-bot
+    profiles: ["bot"]
+    env_file:
+      # OPENAI_API_KEY / OPENAI_MODEL (opcionales: sin clave el bot no improvisa respuestas).
+      - path: .env.local
+        required: false
+    environment:
+      # Pisan a env_file: dentro del compose se resuelve por DNS interno.
+      DATABASE_URL: postgres://consultorio:consultorio@postgres:5432/consultorios
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - ./bot:/app/bot
+      # Volumen anónimo: evita que el bind mount tape el node_modules de la imagen.
+      - /app/bot/node_modules
+      # El bot aplica la migración de WhatsApp al arrancar.
+      - ./db/migrations:/app/db/migrations:ro
+      # Sesión de Baileys persistente (no vuelve a pedir QR entre reinicios).
+      - ./data/wa-auth:/app/bot/auth
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   consultorios-postgres-data:
   consultorios-redis-data:

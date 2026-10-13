@@ -1,4 +1,10 @@
-import type { CanalRecordatorio, EstadoTurno, Rol } from "./types";
+import type {
+  CanalRecordatorio,
+  EstadoConexionWa,
+  EstadoTurno,
+  ModoWa,
+  Rol,
+} from "./types";
 
 export const ESTADOS_TURNO: Record<
   EstadoTurno,
@@ -23,8 +29,9 @@ export const ESTADOS_TURNO: Record<
 };
 
 export const CANALES_RECORDATORIO: Record<CanalRecordatorio, string> = {
-  whatsapp_manual: "WhatsApp",
+  whatsapp_manual: "WhatsApp (a mano)",
   copiado: "Copiado",
+  whatsapp_bot: "Bot de WhatsApp",
 };
 
 export const ROLES: Record<Rol, string> = {
@@ -51,3 +58,33 @@ export const DURACIONES_TURNO = [10, 15, 20, 30, 40, 45, 60, 90, 120];
 
 /** Valor del select para "sin profesional" (Radix no admite items con value ""). */
 export const SIN_PROFESIONAL = "__ninguno";
+
+export const ESTADOS_CONEXION_WA: Record<
+  EstadoConexionWa,
+  { etiqueta: string; className: string }
+> = {
+  desconectado: {
+    etiqueta: "Desconectado",
+    className: "border-border bg-muted text-muted-foreground",
+  },
+  qr: {
+    etiqueta: "Esperando escaneo",
+    className: "border-warning/40 bg-warning/10 text-warning",
+  },
+  conectando: {
+    etiqueta: "Conectando",
+    className: "border-warning/40 bg-warning/10 text-warning",
+  },
+  conectado: {
+    etiqueta: "Conectado",
+    className: "border-success/40 bg-success/10 text-success",
+  },
+};
+
+export const MODOS_WA: Record<ModoWa, { etiqueta: string; className: string }> = {
+  ia: { etiqueta: "Bot", className: "border-primary/30 bg-primary/5 text-primary" },
+  humano: {
+    etiqueta: "Humano",
+    className: "border-warning/40 bg-warning/10 text-warning",
+  },
+};

@@ -43,8 +43,9 @@ export default async function RecordatoriosPage() {
         <h2 className="font-heading text-2xl font-semibold tracking-tight">Recordatorios</h2>
         <p className="text-sm text-muted-foreground">
           Turnos de las próximas {consultorio.recordatorioHorasAntes} horas que todavía no
-          tienen recordatorio. Abrí el mensaje en tu WhatsApp, mandalo y marcalo como
-          enviado. La anticipación se cambia en{" "}
+          tienen recordatorio. Con el bot de WhatsApp conectado se mandan con un clic
+          (o solos, si activás el envío automático); si no, abrí el mensaje en tu
+          WhatsApp, mandalo y marcalo como enviado. La anticipación se cambia en{" "}
           <Link href="/configuracion" className="underline">
             Configuración
           </Link>

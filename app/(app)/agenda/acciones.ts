@@ -5,6 +5,9 @@ import type { PoolClient } from "pg";
 import { transaccion } from "@/lib/db/pool";
 import { usuarioActual } from "@/lib/auth";
 import { obtenerTurno } from "@/lib/data";
+import { botConectado } from "@/lib/data-whatsapp";
+import { getRedis } from "@/lib/db/redis";
+import { numeroWhatsapp } from "@/lib/recordatorios";
 import { esFechaValida, esHoraValida } from "@/lib/fechas";
 import {
   aTexto,
@@ -258,5 +261,82 @@ export async function marcarRecordatorioEnviado(
     return { ok: true };
   } catch (error) {
     return mensajeDeError(error, "No pudimos registrar el recordatorio.");
+  }
+}
+
+/**
+ * Manda el recordatorio por el bot de WhatsApp (cola wa:outbox). Igual que el
+ * flujo manual, se registra una sola vez por turno y horario: si ya estaba
+ * enviado no se vuelve a mandar. El mensaje queda en la conversación con rol
+ * 'sistema', así el bot reconoce un "sí" del paciente como confirmación.
+ */
+export async function enviarRecordatorioPorBot(
+  turnoId: string,
+): Promise<EstadoFormulario> {
+  const actor = await usuarioActual();
+
+  const turno = await obtenerTurno(turnoId);
+  if (!turno) return { ok: false, error: "El turno ya no existe." };
+  if (turno.estado === "cancelado" || turno.estado === "realizado" || turno.pasado) {
+    return { ok: false, error: "Ese turno ya no está activo." };
+  }
+  const numero = numeroWhatsapp(turno.pacienteTelefono);
+  if (!numero) {
+    return {
+      ok: false,
+      error: "El teléfono del paciente no tiene formato completo (ej.: +54 9 351 555 0101).",
+    };
+  }
+  if (!(await botConectado())) {
+    return { ok: false, error: "El bot de WhatsApp no está conectado." };
+  }
+
+  try {
+    const enviado = await transaccion(async (cliente) => {
+      const { rows } = await cliente.query<{ id: string }>(
+        `insert into recordatorios (turno_id, turno_inicio, canal, mensaje, enviado_por)
+         select id, inicio, 'whatsapp_bot', $2, $3 from turnos where id = $1
+         on conflict (turno_id, turno_inicio) do nothing
+         returning id`,
+        [turnoId, turno.mensajeRecordatorio, actor.id],
+      );
+      if (rows.length === 0) return false;
+
+      const conversacion = await cliente.query<{ id: string }>(
+        `insert into wa_conversaciones (telefono, nombre, paciente_id) values ($1, $2, $3)
+         on conflict (telefono) do update
+           set paciente_id = coalesce(wa_conversaciones.paciente_id, excluded.paciente_id)
+         returning id`,
+        [numero, turno.pacienteNombre, turno.pacienteId],
+      );
+      await cliente.query(
+        "insert into wa_mensajes (conversacion_id, rol, contenido) values ($1, 'sistema', $2)",
+        [conversacion.rows[0].id, turno.mensajeRecordatorio],
+      );
+      await cliente.query(
+        "update wa_conversaciones set ultimo_mensaje_en = now() where id = $1",
+        [conversacion.rows[0].id],
+      );
+      await registrarEvento(
+        cliente,
+        turnoId,
+        "recordatorio",
+        "Recordatorio enviado por el bot de WhatsApp",
+        actor.nombre,
+      );
+      return true;
+    });
+
+    if (enviado) {
+      const redis = await getRedis();
+      await redis.lPush(
+        "wa:outbox",
+        JSON.stringify({ telefono: numero, contenido: turno.mensajeRecordatorio }),
+      );
+    }
+    revalidar();
+    return { ok: true };
+  } catch (error) {
+    return mensajeDeError(error, "No pudimos enviar el recordatorio.");
   }
 }

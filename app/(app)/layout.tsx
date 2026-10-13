@@ -26,7 +26,13 @@ export default async function AppLayout({
           rolUsuario={ROLES[usuario.rol]}
           nombreConsultorio={consultorio.nombre}
         />
-        <main className="mx-auto w-full max-w-7xl flex-1 p-4 sm:p-6">{children}</main>
+        {/*
+          Ancho acotado por defecto. Una página que necesita todo el ancho (el
+          chat de /whatsapp) lo pide marcando un nodo con `data-ancho-completo`.
+        */}
+        <main className="mx-auto w-full max-w-7xl flex-1 p-4 has-data-ancho-completo:max-w-none sm:p-6">
+          {children}
+        </main>
       </div>
     </div>
   );

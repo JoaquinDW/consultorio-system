@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // El servicio bot tiene su propio package/tsconfig (corre fuera de Next).
+    "bot/**",
   ]),
 ]);
 

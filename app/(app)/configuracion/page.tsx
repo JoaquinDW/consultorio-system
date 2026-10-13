@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Stethoscope } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -11,19 +12,28 @@ import { EstadoVacio } from "@/components/app/estado-vacio";
 import { usuarioActual } from "@/lib/auth";
 import { obtenerConsultorio, obtenerProfesionales } from "@/lib/data";
 import {
+  obtenerEstadoConexionWa,
+  obtenerRecordatoriosAutomaticos,
+} from "@/lib/data-whatsapp";
+import { ESTADOS_CONEXION_WA } from "@/lib/labels";
+import {
   CambiarActivoProfesional,
   FormularioConsultorio,
   NuevoProfesional,
+  ToggleRecordatoriosAutomaticos,
 } from "./formularios";
 
 export const metadata = { title: "Configuración" };
 
 export default async function ConfiguracionPage() {
-  const [usuario, consultorio, profesionales] = await Promise.all([
+  const [usuario, consultorio, profesionales, estadoWa, automaticos] = await Promise.all([
     usuarioActual(),
     obtenerConsultorio(),
     obtenerProfesionales({ incluirInactivos: true }),
+    obtenerEstadoConexionWa(),
+    obtenerRecordatoriosAutomaticos(),
   ]);
+  const etiquetaWa = ESTADOS_CONEXION_WA[estadoWa.estado];
   const esAdmin = usuario.rol === "administrador";
 
   return (
@@ -90,6 +100,28 @@ export default async function ConfiguracionPage() {
                 </div>
               ))
             )}
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
+            <div className="flex flex-col gap-1">
+              <CardTitle className="text-base">WhatsApp</CardTitle>
+              <CardDescription>
+                El bot manda recordatorios, registra confirmaciones y te avisa
+                cuando un paciente pide cambiar un turno.{" "}
+                <Link href="/whatsapp" className="underline">
+                  Ver conversaciones
+                </Link>
+              </CardDescription>
+            </div>
+            <Badge variant="outline" className={etiquetaWa.className}>
+              {etiquetaWa.etiqueta}
+              {estadoWa.telefono && ` · +${estadoWa.telefono}`}
+            </Badge>
+          </CardHeader>
+          <CardContent>
+            <ToggleRecordatoriosAutomaticos activo={automaticos} editable={esAdmin} />
           </CardContent>
         </Card>
       </div>
