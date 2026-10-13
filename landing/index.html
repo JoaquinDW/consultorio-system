@@ -251,6 +251,7 @@ p { margin: 0; }
 .cta-note { font-size: .875rem; color: var(--night-ink-2); display: flex; align-items: center; gap: 8px; }
 .cta-note svg { width: 16px; height: 16px; color: var(--wa); flex: none; }
 .facts { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 8px 0 0; list-style: none; }
+.facts li.offer { color: var(--wa); border-color: oklch(0.775 0.195 150 / 0.45); background: oklch(0.775 0.195 150 / 0.1); font-weight: 600; }
 .facts li {
   font-size: .85rem; color: var(--night-ink-2); padding: 6px 12px; border-radius: 999px;
   background: oklch(1 0 0 / 0.05); border: 1px solid var(--night-line);
@@ -477,21 +478,33 @@ p { margin: 0; }
 .shot figcaption { font-size: .875rem; color: var(--ink-3); }
 .shot-scroll { overflow-x: auto; }
 
-/* Control */
-.control { display: grid; gap: 40px; }
-@media (min-width: 900px) { .control { grid-template-columns: 5fr 7fr; gap: 64px; align-items: start; } }
-.rules { list-style: none; margin: 0; padding: 0; display: grid; }
-.rules li { display: grid; grid-template-columns: 32px 1fr; gap: 14px; padding: 20px 0; border-top: 1px solid var(--line); }
-.rules li:last-child { border-bottom: 1px solid var(--line); }
-.rules svg { width: 22px; height: 22px; color: var(--wa-text); margin-top: 3px; }
-.rules b { display: block; font-weight: 600; margin-bottom: 2px; }
-.rules p { color: var(--ink-2); }
-.switch {
-  display: inline-grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 999px;
-  background: var(--sunk); border: 1px solid var(--line); font-size: .85rem; font-weight: 500; margin-top: 8px;
-}
-.switch span { padding: 8px 18px; border-radius: 999px; text-align: center; color: var(--ink-3); }
-.switch span.on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+/* Control: quién hace qué */
+.roles-head { display: grid; gap: 16px; max-width: 760px; margin-bottom: clamp(32px, 5vw, 48px); }
+.roles { display: grid; gap: 14px; }
+@media (min-width: 820px) { .roles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.role { border-radius: var(--r-lg); padding: clamp(20px, 3vw, 32px); display: grid; gap: 18px; align-content: start; min-width: 0; border: 1px solid var(--line); background: var(--surface); }
+.role.bot { background: var(--ok-bg); border-color: var(--ok-line); }
+.role-top { display: flex; align-items: center; gap: 14px; }
+.role-top .ic { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; flex: none; }
+.role.bot .ic { background: var(--wa); color: var(--wa-ink); }
+.role.team .ic { background: var(--ink); color: var(--bg); }
+.role-top .ic svg { width: 24px; height: 24px; }
+.role-top h3 { font-size: clamp(1.4rem, 1.1rem + 1vw, 1.8rem); font-weight: 750; font-variation-settings: "wdth" 88; letter-spacing: -0.01em; line-height: 1.05; }
+.role-top small { display: block; font: 500 .75rem/1.3 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin-top: 4px; }
+.role.bot .role-top small { color: var(--ok-fg); }
+.role ul { list-style: none; margin: 0; padding: 0; display: grid; }
+.role li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); align-items: start; }
+.role.bot li { border-color: var(--ok-line); }
+.role li svg { width: 18px; height: 18px; margin-top: 3px; }
+.role.bot li svg { color: var(--ok-fg); }
+.role.team li svg { color: var(--ink-2); }
+.role li b { font-weight: 600; }
+.role li span { color: var(--ink-2); }
+.role li span b { color: var(--ink); }
+.always { display: flex; flex-wrap: wrap; gap: 10px 28px; margin-top: 22px; padding: 18px 22px; border-radius: var(--r-md); border: 1px dashed var(--line); font-size: .92rem; color: var(--ink-2); }
+.always > b { font: 500 .75rem/1.7 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.always span { display: inline-flex; gap: 8px; align-items: center; }
+.always svg { width: 17px; height: 17px; color: var(--wa-text); flex: none; }
 
 /* Para quién */
 .who-list { display: flex; flex-wrap: wrap; gap: 10px; padding: 0; margin: 0; list-style: none; }
@@ -527,6 +540,8 @@ p { margin: 0; }
 .closing .wrap { display: grid; gap: 28px; justify-items: center; text-align: center; }
 .closing .h2 { font-size: clamp(2.2rem, 1.4rem + 3.8vw, 4.2rem); max-width: 16ch; }
 .closing .lede { color: var(--night-ink-2); text-align: center; }
+.closing .offer-note { font-size: 1rem; color: var(--night-ink-2); }
+.closing .offer-note b { color: var(--wa); font-weight: 600; }
 .closing .alt { font-size: .9rem; color: var(--night-ink-2); }
 .closing .alt .mono { color: var(--night-ink); font-size: .9rem; user-select: all; }
 
@@ -610,6 +625,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
         <li>Agenda por profesional</li>
         <li>Recordatorios por WhatsApp</li>
         <li>Sin turnos superpuestos</li>
+        <li class="offer">Oferta: desde $ 20.000</li>
       </ul>
     </div>
 
@@ -763,7 +779,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
       <div class="browser">
         <div class="browser-bar" aria-hidden="true"><i></i><i></i><i></i><span>Agenda · Semana del 12 al 18 de octubre</span></div>
         <div class="shot-scroll">
-          <img src="agenda-semana.webp" width="1280" height="1186" loading="lazy" decoding="async" alt="Captura de la agenda semanal de Turnos: siete columnas de lunes a domingo con los turnos de cada día, su horario, paciente, servicio, profesional y estado (pendiente, confirmado, realizado o cancelado).">
+          <img src="agenda-semana.webp" width="1280" height="800" loading="lazy" decoding="async" alt="Captura de la agenda semanal de Turnos: siete columnas de lunes a domingo con los turnos de cada día, su horario, paciente, servicio, profesional y estado (pendiente, confirmado, realizado o cancelado).">
         </div>
       </div>
       <figcaption id="t-captura">Así se ve la agenda semanal por dentro, con datos de ejemplo.</figcaption>
@@ -772,20 +788,38 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
 </section>
 
 <section class="section" aria-labelledby="t-control" style="background: var(--sunk); border-block: 1px solid var(--line);">
-  <div class="wrap control">
-    <div class="section-head" style="margin-bottom:0">
+  <div class="wrap">
+    <div class="roles-head">
       <span class="eyebrow">Vos tenés el control</span>
-      <h2 class="h2" id="t-control">El bot ayuda. Las decisiones siguen siendo tuyas.</h2>
-      <p class="lede">Elegís qué hace solo y qué pasa por tu equipo. Cualquier conversación se puede tomar a mano cuando quieras.</p>
-      <div class="switch" aria-hidden="true"><span class="on">Bot</span><span>Humano</span></div>
+      <h2 class="h2" id="t-control">El bot hace lo repetitivo. Tu equipo, lo que importa.</h2>
+      <p class="lede">Cada conversación está en modo Bot o Humano. Cuando el bot no tiene que resolver algo, pasa la charla a tu equipo y la marca para que la vean.</p>
     </div>
-    <ul class="rules">
-      <li><svg aria-hidden="true"><use href="#i-shield"/></svg><div><b>Nunca da consejos médicos</b><p>Responde temas administrativos con la información que cargues del consultorio. Lo demás lo deriva.</p></div></li>
-      <li><svg aria-hidden="true"><use href="#i-person"/></svg><div><b>Cambios y cancelaciones, a una persona</b><p>El bot no toca un turno ya dado: avisa al equipo y marca la charla para que la atiendan.</p></div></li>
-      <li><svg aria-hidden="true"><use href="#i-cal"/></svg><div><b>Dar turnos es opcional</b><p>Se prende en Configuración. Si lo dejás apagado, el bot junta los datos y le pasa la charla al equipo.</p></div></li>
-      <li><svg aria-hidden="true"><use href="#i-qr"/></svg><div><b>Tu número, vinculado con un QR</b><p>Se conecta como un dispositivo vinculado de WhatsApp. Conviene un número dedicado al consultorio.</p></div></li>
-      <li><svg aria-hidden="true"><use href="#i-file-x"/></svg><div><b>Sin historia clínica</b><p>No guarda diagnósticos ni tratamientos. Los recordatorios solo llevan nombre, fecha, hora y profesional.</p></div></li>
-    </ul>
+    <div class="roles">
+      <article class="role bot">
+        <div class="role-top"><span class="ic"><svg aria-hidden="true"><use href="#i-wa"/></svg></span><div><h3>Lo hace el bot</h3><small>Modo Bot · las 24 horas</small></div></div>
+        <ul>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Contesta al instante</b>, a cualquier hora y todos los días.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Pide nombre y servicio</b> y reconoce a los pacientes que ya tenés.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Ofrece horarios libres y reserva el turno</b>, si lo activás en Configuración.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Manda los recordatorios</b> y confirma el turno cuando el paciente contesta «sí».</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Responde dudas administrativas</b> con la información que cargues del consultorio.</span></li>
+        </ul>
+      </article>
+      <article class="role team">
+        <div class="role-top"><span class="ic"><svg aria-hidden="true"><use href="#i-person"/></svg></span><div><h3>Lo hace tu equipo</h3><small>Modo Humano · cuando hace falta</small></div></div>
+        <ul>
+          <li><svg aria-hidden="true"><use href="#i-person"/></svg><span><b>Cambios y cancelaciones.</b> El bot no toca un turno ya dado: avisa y deriva.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-person"/></svg><span><b>Lo que el bot no sabe contestar</b>, marcado como «Requiere atención».</span></li>
+          <li><svg aria-hidden="true"><use href="#i-person"/></svg><span><b>Cualquier charla que quieras tomar</b>: la pasás a Humano con un clic.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-person"/></svg><span><b>Decidir qué hace el bot</b>: horarios, servicios y si da turnos solo.</span></li>
+        </ul>
+      </article>
+    </div>
+    <p class="always"><b>Siempre</b>
+      <span><svg aria-hidden="true"><use href="#i-shield"/></svg>Nunca da consejos médicos</span>
+      <span><svg aria-hidden="true"><use href="#i-file-x"/></svg>No guarda historia clínica</span>
+      <span><svg aria-hidden="true"><use href="#i-qr"/></svg>Usa tu número, vinculado con un QR</span>
+    </p>
   </div>
 </section>
 
@@ -809,7 +843,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
     </div>
     <div class="faq">
       <details open><summary>¿Cuánto sale?</summary>
-        <p>Depende de cuántos profesionales y sedes tenga tu consultorio. <a data-wa data-wa-from="faq-precio" data-wa-msg="Hola! Quiero saber cuánto sale Turnos para mi consultorio." href="https://wa.me/5490000000000" target="_blank" rel="noopener">Escribinos por WhatsApp</a> y te pasamos el precio para tu caso.</p></details>
+        <p>Hoy está en oferta de lanzamiento: <strong>entre $ 20.000 y $ 50.000</strong>, según cuánto lo uses (profesionales, sedes y volumen de mensajes). <a data-wa data-wa-from="faq-precio" data-wa-msg="Hola! Quiero saber cuánto sale Turnos para mi consultorio." href="https://wa.me/5490000000000" target="_blank" rel="noopener">Escribinos por WhatsApp</a> y te decimos cuál es el tuyo.</p></details>
       <details><summary>¿Necesito la API oficial de WhatsApp o un proveedor aparte?</summary>
         <p>No. El bot se vincula al WhatsApp del consultorio escaneando un QR, igual que WhatsApp Web. Te recomendamos usar un número dedicado al consultorio.</p></details>
       <details><summary>¿El bot puede equivocarse con un turno?</summary>
@@ -832,6 +866,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
     <a class="btn-wa is-lg" data-wa data-wa-from="cierre" data-wa-msg="Hola! Quiero ver cómo funcionaría Turnos en mi consultorio." href="https://wa.me/5490000000000" target="_blank" rel="noopener">
       <svg aria-hidden="true"><use href="#i-wa"/></svg>Escribinos por WhatsApp
     </a>
+    <p class="offer-note">Precio de lanzamiento: <b>entre $ 20.000 y $ 50.000</b> según el uso.</p>
     <p class="alt">o agendá el número: <span class="mono" data-wa-numero>+54 9 000 000-0000</span></p>
   </div>
 </section>
