@@ -59,6 +59,12 @@ equipo. Detalle en `bot/README.md`.
   sin lugar vale en todos. Al dar un turno, elegir el servicio completa la
   duración y el profesional, y la agenda lo muestra. Los cambia quien
   administra; recepción los ve.
+- **Horarios de atención:** franjas por día de la semana en Configuración
+  (por ejemplo, lunes a viernes de 8 a 13 y de 14 a 20). Hay un horario
+  general y cada profesional puede tener el suyo, opcionalmente en un lugar.
+  La agenda no deja dar ni reprogramar un turno que no entre completo en el
+  horario, y muestra el horario de cada día. Sin horarios cargados no hay
+  restricción.
 - **Agenda:** vista de día y de semana, filtro por profesional, y la zona
   horaria visible siempre.
 - **Sin superposiciones:** lo impide la base con una exclusion constraint por
@@ -78,7 +84,7 @@ equipo. Detalle en `bot/README.md`.
   rojo en la bandeja y aviso en Inicio). Los recordatorios se pueden mandar por
   el bot desde la agenda, o en forma automática si se activa en Configuración.
 - **Configuración:** nombre del consultorio, zona horaria, duración por defecto,
-  anticipación del recordatorio, profesionales y lugares.
+  anticipación del recordatorio, horarios de atención, profesionales y lugares.
 
 ## Arquitectura
 

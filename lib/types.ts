@@ -44,6 +44,20 @@ export interface Servicio {
   activo: boolean;
 }
 
+/** Franja semanal de atención. `profesionalId` nulo = horario general. */
+export interface FranjaHorario {
+  id: string;
+  /** ISO: 1 = lunes … 7 = domingo. */
+  diaSemana: number;
+  /** "HH:MM". */
+  desde: string;
+  hasta: string;
+  profesionalId: string | null;
+  profesionalNombre: string | null;
+  lugarId: string | null;
+  lugarNombre: string | null;
+}
+
 export interface Paciente {
   id: string;
   nombre: string;

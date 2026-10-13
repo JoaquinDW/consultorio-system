@@ -63,6 +63,15 @@ const SERVICIOS: [string, number | null, number | null, number, number, number |
   ["Evaluación postural", 1, 1, 60, 30000, 27000, null],
 ];
 
+// Horario general: [día ISO (1 = lunes), desde, hasta].
+const HORARIOS: [number, string, string][] = [
+  ...[1, 2, 3, 4, 5].flatMap((d): [number, string, string][] => [
+    [d, "08:00", "13:00"],
+    [d, "14:00", "20:00"],
+  ]),
+  [6, "09:00", "13:00"],
+];
+
 const PACIENTES = [
   { nombre: "Ana Belén Torres", nota: "Prefiere turnos por la tarde." },
   { nombre: "Bruno Castillo", nota: null },
@@ -108,7 +117,7 @@ async function main() {
   try {
     await db.query("begin");
     await db.query(
-      "truncate recordatorios, eventos_turno, turnos, servicios, lugares, pacientes, profesionales, perfiles cascade",
+      "truncate recordatorios, eventos_turno, turnos, horarios, servicios, lugares, pacientes, profesionales, perfiles cascade",
     );
     await db.query(
       `update consultorio
@@ -162,6 +171,14 @@ async function main() {
         ],
       );
       idsServicios.push(rows[0].id);
+    }
+
+    for (const [dia, desde, hasta] of HORARIOS) {
+      await db.query(`insert into horarios (dia_semana, desde, hasta) values ($1, $2, $3)`, [
+        dia,
+        desde,
+        hasta,
+      ]);
     }
 
     const idsPacientes: string[] = [];
