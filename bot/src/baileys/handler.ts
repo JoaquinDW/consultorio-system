@@ -27,7 +27,13 @@ import {
 import { agendarTurnosActivo, getServicios } from "../agenda.js";
 import { generarRespuesta, hayLlm } from "../openai.js";
 import { MARCA_DERIVAR } from "../system-prompt.js";
-import { esConfirmacion, esPedidoDeCambio, fechaLarga, nombrePila } from "../mensajes.js";
+import {
+  esConfirmacion,
+  esPedidoDeCambio,
+  fechaLarga,
+  nombrePila,
+  textoWhatsapp,
+} from "../mensajes.js";
 
 /** Un "sí" cuenta como respuesta al recordatorio si llega dentro de este plazo. */
 const HORAS_RESPUESTA_RECORDATORIO = 48;
@@ -193,7 +199,7 @@ async function procesarMensaje(sock: WASocket, msg: WAMessage): Promise<void> {
   }
 
   const derivar = respuesta.includes(MARCA_DERIVAR);
-  respuesta = respuesta.replaceAll(MARCA_DERIVAR, "").trim();
+  respuesta = textoWhatsapp(respuesta.replaceAll(MARCA_DERIVAR, ""));
   if (respuesta) await responder(sock, jid, conversacion.id, "ia", respuesta);
   if (derivar) {
     await marcarAtencion(conversacion.id);

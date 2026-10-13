@@ -245,7 +245,9 @@ export async function buscarDisponibilidad({
   profesionalId?: string;
   desde?: string;
   dias?: number;
-}): Promise<{ disponibles: DiaDisponible[]; duracion_min: number } | { error: string }> {
+}): Promise<
+  { hoy: string; disponibles: DiaDisponible[]; duracion_min: number } | { error: string }
+> {
   const pedido = await resolverPedido(servicioId, profesionalId);
   if ("error" in pedido) return pedido;
 
@@ -255,7 +257,13 @@ export async function buscarDisponibilidad({
   }
 
   const { hoy, minutos: ahora } = await ahoraLocal();
-  const inicio = desde && /^\d{4}-\d{2}-\d{2}$/.test(desde) && desde > hoy ? desde : hoy;
+  if (desde && !/^\d{4}-\d{2}-\d{2}$/.test(desde)) {
+    return { error: `\`desde\` tiene que ser YYYY-MM-DD. Hoy es ${hoy}: sacá la fecha del calendario.` };
+  }
+  if (desde && desde < hoy) {
+    return { error: `${desde} ya pasó: hoy es ${hoy}. Sacá la fecha del calendario (revisá el año).` };
+  }
+  const inicio = desde ?? hoy;
   const cantidad = Math.min(Math.max(Math.trunc(dias) || 7, 1), MAX_DIAS);
   const fin = sumarDias(inicio, cantidad - 1);
   const ocupados = await getOcupados(inicio, fin);
@@ -288,7 +296,27 @@ export async function buscarDisponibilidad({
     }
     if (new Set(disponibles.map((d) => d.fecha)).size >= MAX_DIAS_CON_LUGAR) break;
   }
-  return { disponibles, duracion_min: pedido.duracion };
+  return { hoy, disponibles, duracion_min: pedido.duracion };
+}
+
+/**
+ * Antes de buscar horarios hace falta el nombre y apellido: el que pasó el LLM
+ * o el que ya tiene el paciente vinculado. Devuelve el error, o null.
+ */
+export async function faltaNombre(
+  conversacion: WaConversacionFila,
+  nombreCompleto: string | undefined,
+): Promise<string | null> {
+  if (palabras(limpiarNombre(nombreCompleto ?? "")) >= 2) return null;
+  const res = await pool.query<{ nombre: string }>(
+    `select p.nombre from public.wa_conversaciones c
+     join public.pacientes p on p.id = c.paciente_id
+     where c.id = $1`,
+    [conversacion.id],
+  );
+  const registrado = res.rows[0]?.nombre;
+  if (registrado && palabras(registrado) >= 2) return null;
+  return "Todavía no tenés el nombre y apellido: pedíselo antes de buscar horarios.";
 }
 
 // --- Reserva ---------------------------------------------------------------------
@@ -340,8 +368,14 @@ export async function agendarTurno(
   // Mismo criterio que la disponibilidad ofrecida.
   const { hoy, minutos: ahora } = await ahoraLocal();
   const inicio = aMinutos(hora);
-  if (fecha < hoy || (fecha === hoy && inicio < ahora + MARGEN_MIN)) {
-    return { ok: false, error: "Ese horario ya pasó o es demasiado pronto. Ofrecé otro." };
+  if (fecha < hoy) {
+    return {
+      ok: false,
+      error: `La fecha ${fecha} ya pasó: hoy es ${hoy}. Seguramente le erraste al año o al día; sacá la fecha del calendario y reintentá.`,
+    };
+  }
+  if (fecha === hoy && inicio < ahora + MARGEN_MIN) {
+    return { ok: false, error: "Ese horario de hoy ya pasó o es demasiado pronto. Ofrecé otro." };
   }
   const rigen = franjasQueRigen(await getFranjas(), prof?.id ?? null);
   if (!rigen) {

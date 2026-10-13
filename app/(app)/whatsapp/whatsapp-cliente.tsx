@@ -598,7 +598,7 @@ export function WhatsappCliente({
                   >
                     <div
                       className={cn(
-                        "rounded-lg px-3.5 py-2.5 text-sm",
+                        "rounded-lg px-3.5 py-2.5 text-sm whitespace-pre-wrap break-words",
                         m.rol === "cliente" && "bg-muted",
                         m.rol === "ia" && "border border-primary/20 bg-primary/5",
                         m.rol === "humano" && "border border-warning/40 bg-warning/10",
