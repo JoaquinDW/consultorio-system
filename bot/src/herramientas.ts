@@ -1,5 +1,5 @@
 import type { ChatCompletionTool } from "openai/resources/chat/completions";
-import { agendarTurno, buscarDisponibilidad, faltaNombre } from "./agenda.js";
+import { agendarTurno, buscarDisponibilidad, faltaNombre, yaTieneTurno } from "./agenda.js";
 import type { WaConversacionFila } from "./db.js";
 
 /**
@@ -83,8 +83,10 @@ export async function ejecutarHerramienta(
 
   switch (nombre) {
     case "consultar_disponibilidad": {
-      const sinNombre = await faltaNombre(conversacion, texto(args.nombre_completo));
-      if (sinNombre) return JSON.stringify({ error: sinNombre });
+      const impedimento =
+        (await yaTieneTurno(conversacion)) ??
+        (await faltaNombre(conversacion, texto(args.nombre_completo)));
+      if (impedimento) return JSON.stringify({ error: impedimento });
       return JSON.stringify(
         await buscarDisponibilidad({
           servicioId: texto(args.servicio_id),
