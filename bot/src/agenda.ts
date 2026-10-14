@@ -300,6 +300,31 @@ export async function buscarDisponibilidad({
 }
 
 /**
+ * Si quien escribe ya tiene un turno próximo, el bot no le da otro: se chequea
+ * antes de buscar horarios para no ofrecer algo que después no puede reservar.
+ * Busca el paciente vinculado o, si no hay, uno con el mismo teléfono (igual que
+ * `agendarTurno`). Devuelve el error, o null.
+ */
+export async function yaTieneTurno(conversacion: WaConversacionFila): Promise<string | null> {
+  const res = await pool.query(
+    `select 1 from public.turnos t
+     where t.estado in ('pendiente', 'confirmado') and t.inicio > now()
+       and t.paciente_id = coalesce(
+         (select paciente_id from public.wa_conversaciones where id = $1),
+         (select p.id from public.pacientes p
+          where not p.archivado and length($2) >= 8
+            and right(regexp_replace(p.telefono, '\\D', '', 'g'), 10) = right($2, 10)
+          order by p.creado_en desc limit 1)
+       )
+     limit 1`,
+    [conversacion.id, conversacion.telefono.replace(/\D/g, "")],
+  );
+  return res.rowCount
+    ? "Ya tiene un turno próximo, así que no se le puede dar otro: no busques horarios, decile que le pasás el pedido al equipo y derivá."
+    : null;
+}
+
+/**
  * Antes de buscar horarios hace falta el nombre y apellido: el que pasó el LLM
  * o el que ya tiene el paciente vinculado. Devuelve el error, o null.
  */

@@ -185,7 +185,9 @@ function bloqueTurnosNuevos(agendaActiva: boolean): string {
     "- Con su confirmación, usá `agendar_turno`. Si sale bien, confirmale el turno con día, hora y",
     "  profesional. Si da error, explicale con tus palabras y ofrecé otro horario, o derivá si el",
     "  error lo pide.",
-    "- Si ya tiene un turno próximo y quiere otro, o algo no se puede resolver con las herramientas, derivá.",
+    "- Si en \"Quién escribe\" ya figura un turno próximo y pide otro, no le pidas datos ni busques",
+    "  horarios: el bot no da un segundo turno. Avisale que le pasás el pedido al equipo y derivá.",
+    "  Lo mismo si algo no se puede resolver con las herramientas.",
   ].join("\n");
 }
 
@@ -193,6 +195,8 @@ const REGLA_FORMATO = [
   "## Formato",
   "",
   "Escribís en WhatsApp: texto plano, sin markdown (nada de **, #, tablas ni listas con viñetas).",
+  "Siempre en español rioplatense con vos (tenés, querés, podés), nunca tú (tienes, quieres).",
+  "Los errores de las herramientas son para vos: explicáselos al paciente con tus palabras.",
   "Si tenés que resumir datos, hacelo en una o dos oraciones.",
 ].join("\n");
 
