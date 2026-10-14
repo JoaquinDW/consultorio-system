@@ -9,6 +9,8 @@ por WhatsApp. `index.html` incluye una demo interactiva en
 - `/` abre en español por defecto, incluso si el navegador está en inglés.
 - `/en/` ofrece la landing completa en inglés. El selector Español / English
   del encabezado permite cambiar de idioma y conservar la sección actual.
+- La suscripción publicada en inglés cuesta USD 50–80 por mes, según el uso.
+  La versión en español mantiene sus precios en pesos argentinos.
 - Ambas páginas son HTML estático y comparten `landing.css` y `landing.js`.
   El selector también funciona sin JavaScript. Cada versión tiene sus propios
   metadatos, mensajes de WhatsApp e imagen social; `hreflang` vincula las páginas.
