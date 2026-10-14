@@ -36,6 +36,61 @@
   var english = document.documentElement.lang === "en";
   var cfg = window.TURNOS || {};
 
+  // Cost of administrative time; inquiries are opportunities at risk, not lost patients.
+  var calculator = document.querySelector("[data-calculator]");
+  if (calculator) {
+    var hoursInput = document.getElementById("calc-hours");
+    var rateInput = document.getElementById("calc-rate");
+    var inquiriesInput = document.getElementById("calc-inquiries");
+    var currencies = calculator.querySelectorAll('[name="calc-currency"]');
+    var currency = english ? "USD" : "ARS";
+    // Keep a separate entered value for each currency; never imply an exchange rate.
+    var rates = { ARS: 6000, USD: 15 };
+    var numberFormat = new Intl.NumberFormat(english ? "en-US" : "es-AR", { maximumFractionDigits: 1 });
+    var moneyFormat = new Intl.NumberFormat(english ? "en-US" : "es-AR", { maximumFractionDigits: 0 });
+
+    function money(value) {
+      return (english ? "$" : "$ ") + moneyFormat.format(value);
+    }
+    function updateCalculator() {
+      var hours = Number(hoursInput.value);
+      var rate = Number(rateInput.value);
+      var inquiries = Number(inquiriesInput.value);
+      document.getElementById("calc-hours-value").textContent = numberFormat.format(hours) + " h";
+      document.getElementById("calc-rate-value").textContent = money(rate) + " / h";
+      document.getElementById("calc-inquiries-value").textContent = numberFormat.format(inquiries);
+      hoursInput.setAttribute("aria-valuetext", hours + (english ? " hours per week" : " horas por semana"));
+      rateInput.setAttribute("aria-valuetext", money(rate) + " " + currency + (english ? " per hour" : " por hora"));
+      inquiriesInput.setAttribute("aria-valuetext", inquiries + (english ? " inquiries per day" : " consultas por día"));
+      document.getElementById("calc-monthly-cost").textContent = money(Math.round(hours * 4.3 * rate));
+      document.getElementById("calc-cost-caption").textContent = currency + (english ? " per month in repetitive tasks." : " por mes en tareas repetitivas.");
+      document.getElementById("calc-monthly-hours").textContent = numberFormat.format(hours * 4.3);
+      document.getElementById("calc-monthly-inquiries").textContent = numberFormat.format(inquiries * 22);
+      [hoursInput, rateInput, inquiriesInput].forEach(function (input) {
+        var progress = (Number(input.value) - Number(input.min)) / (Number(input.max) - Number(input.min)) * 100;
+        input.style.setProperty("--range-progress", progress + "%");
+      });
+    }
+    [hoursInput, rateInput, inquiriesInput].forEach(function (input) {
+      input.addEventListener("input", updateCalculator);
+    });
+    currencies.forEach(function (radio) {
+      radio.addEventListener("change", function () {
+        if (!radio.checked) return;
+        rates[currency] = Number(rateInput.value);
+        currency = radio.value;
+        rateInput.max = currency === "ARS" ? "50000" : "100";
+        rateInput.step = currency === "ARS" ? "500" : "1";
+        rateInput.value = rates[currency];
+        document.getElementById("calc-rate-max").textContent = money(Number(rateInput.max));
+        updateCalculator();
+      });
+    });
+    calculator.querySelector("form").addEventListener("submit", function (event) { event.preventDefault(); });
+    updateCalculator();
+    calculator.hidden = false;
+  }
+
   // Preserve the section when switching languages, including without client storage.
   document.querySelectorAll("[data-language-link]").forEach(function (link) {
     link.addEventListener("click", function () {

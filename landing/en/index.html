@@ -63,6 +63,7 @@
     <nav class="nav" aria-label="Sections">
       <a href="#como-funciona">How it works</a>
       <a href="#funciones">Features</a>
+      <a href="#calculadora">Calculator</a>
       <a href="#preguntas">FAQs</a>
     </nav>
     <a class="btn-wa" data-wa data-wa-from="header" data-wa-msg="Hi! I saw the SmartTurnos website and would like to learn more for my clinic." href="https://wa.me/5493794721825" target="_blank" rel="noopener">
@@ -209,6 +210,62 @@
         <svg aria-hidden="true"><use href="#i-wa"/></svg>I want to try it
       </a>
     </div>
+  </div>
+</section>
+
+<section class="section calculator" id="calculadora" aria-labelledby="t-calculadora">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Do the math</span>
+      <h2 class="h2" id="t-calculadora">What is doing everything by hand costing you?</h2>
+      <p class="lede">Booking appointments, sending confirmations, answering the same questions. Use your own numbers to see the time and money spent each month.</p>
+    </div>
+    <div class="calculator-panel" data-calculator hidden>
+      <form class="calculator-controls" aria-label="Your clinic’s numbers">
+        <div class="calculator-field">
+          <div class="calculator-label"><label for="calc-hours">Hours per week on repetitive tasks</label><output for="calc-hours" id="calc-hours-value">20 h</output></div>
+          <p id="calc-hours-hint">Add up your whole team’s time: booking appointments, confirming them, and answering administrative questions.</p>
+          <input id="calc-hours" type="range" min="0" max="120" step="1" value="20" aria-describedby="calc-hours-hint">
+          <div class="calculator-scale" aria-hidden="true"><span>0 h</span><span>120 h</span></div>
+        </div>
+        <div class="calculator-field">
+          <div class="calculator-label"><label for="calc-rate">Average hourly cost</label><output for="calc-rate" id="calc-rate-value">$15 / h</output></div>
+          <p id="calc-rate-hint">If you do it yourself, use the value you place on an hour of your time.</p>
+          <input id="calc-rate" type="range" min="0" max="100" step="1" value="15" aria-describedby="calc-rate-hint calc-currency-hint">
+          <div class="calculator-scale" aria-hidden="true"><span>$ 0</span><span id="calc-rate-max">$100</span></div>
+          <fieldset class="calculator-currency">
+            <legend class="sr">Calculation currency</legend>
+            <label><input type="radio" name="calc-currency" value="ARS"><span>Pesos (ARS)</span></label>
+            <label><input type="radio" name="calc-currency" value="USD" checked><span>Dollars (USD)</span></label>
+          </fieldset>
+          <p id="calc-currency-hint" class="calculator-hint">Enter the cost in the selected currency. We don’t convert currencies.</p>
+        </div>
+        <div class="calculator-field">
+          <div class="calculator-label"><label for="calc-inquiries">Daily inquiries answered late or left unanswered</label><output for="calc-inquiries" id="calc-inquiries-value">10</output></div>
+          <p id="calc-inquiries-hint">Messages from patients looking for an appointment or information.</p>
+          <input id="calc-inquiries" type="range" min="0" max="100" step="1" value="10" aria-describedby="calc-inquiries-hint">
+          <div class="calculator-scale" aria-hidden="true"><span>0</span><span>100</span></div>
+        </div>
+      </form>
+      <div class="calculator-results">
+        <div role="status" aria-live="polite" aria-atomic="true">
+          <div class="calculator-total">
+            <span class="eyebrow">That time costs you</span>
+            <p class="calculator-amount" id="calc-monthly-cost">$1,290</p>
+            <p id="calc-cost-caption">USD per month in repetitive tasks.</p>
+            <p class="calculator-time">That’s <strong id="calc-monthly-hours">86</strong> hours a month spent on admin.</p>
+          </div>
+          <div class="calculator-risk">
+            <span class="eyebrow">Appointments are at stake, too</span>
+            <p class="calculator-risk-number">Up to <strong id="calc-monthly-inquiries">220</strong> inquiries at risk each month.</p>
+            <p>Each late reply could be an appointment booked at another clinic.</p>
+          </div>
+        </div>
+        <p class="calculator-assumptions">Estimate: weekly hours × 4.3 × hourly cost. For inquiries, we use 22 working days per month. Not every inquiry becomes a booking; the cost of time is not guaranteed savings.</p>
+        <a class="btn-wa" data-wa data-wa-from="calculadora" data-wa-msg="Hi! I used the SmartTurnos calculator. I would like to see how to automate my clinic." href="https://wa.me/5493794721825" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-wa"/></svg>Automate my clinic</a>
+      </div>
+    </div>
+    <noscript><p class="lede">Enable JavaScript to use the calculator. The calculation is: weekly hours × 4.3 × hourly cost = monthly cost of time.</p></noscript>
   </div>
 </section>
 

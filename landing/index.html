@@ -63,6 +63,7 @@
     <nav class="nav" aria-label="Secciones">
       <a href="#como-funciona">Cómo funciona</a>
       <a href="#funciones">Funciones</a>
+      <a href="#calculadora">Calculadora</a>
       <a href="#preguntas">Preguntas</a>
     </nav>
     <a class="btn-wa" data-wa data-wa-from="header" data-wa-msg="Hola! Vi la web de SmartTurnos y quiero saber más para mi consultorio." href="https://wa.me/5493794721825" target="_blank" rel="noopener">
@@ -209,6 +210,62 @@
         <svg aria-hidden="true"><use href="#i-wa"/></svg>Quiero probarlo
       </a>
     </div>
+  </div>
+</section>
+
+<section class="section calculator" id="calculadora" aria-labelledby="t-calculadora">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Hacé la cuenta</span>
+      <h2 class="h2" id="t-calculadora">¿Cuánto te cuesta seguir haciendo todo a mano?</h2>
+      <p class="lede">Mover turnos, confirmar por WhatsApp, responder siempre lo mismo. Poné tus números y mirá cuánto tiempo y plata se van cada mes.</p>
+    </div>
+    <div class="calculator-panel" data-calculator hidden>
+      <form class="calculator-controls" aria-label="Datos de tu consultorio">
+        <div class="calculator-field">
+          <div class="calculator-label"><label for="calc-hours">Horas por semana en tareas repetitivas</label><output for="calc-hours" id="calc-hours-value">20 h</output></div>
+          <p id="calc-hours-hint">Sumá el tiempo de todo tu equipo: dar turnos, confirmarlos y responder preguntas administrativas.</p>
+          <input id="calc-hours" type="range" min="0" max="120" step="1" value="20" aria-describedby="calc-hours-hint">
+          <div class="calculator-scale" aria-hidden="true"><span>0 h</span><span>120 h</span></div>
+        </div>
+        <div class="calculator-field">
+          <div class="calculator-label"><label for="calc-rate">Costo promedio por hora</label><output for="calc-rate" id="calc-rate-value">$ 6.000 / h</output></div>
+          <p id="calc-rate-hint">Si lo hacés vos, usá el valor que le ponés a una hora de tu tiempo.</p>
+          <input id="calc-rate" type="range" min="0" max="50000" step="500" value="6000" aria-describedby="calc-rate-hint calc-currency-hint">
+          <div class="calculator-scale" aria-hidden="true"><span>$ 0</span><span id="calc-rate-max">$ 50.000</span></div>
+          <fieldset class="calculator-currency">
+            <legend class="sr">Moneda del cálculo</legend>
+            <label><input type="radio" name="calc-currency" value="ARS" checked><span>Pesos (ARS)</span></label>
+            <label><input type="radio" name="calc-currency" value="USD"><span>Dólares (USD)</span></label>
+          </fieldset>
+          <p id="calc-currency-hint" class="calculator-hint">Ingresá el costo en la moneda elegida. No hacemos conversión.</p>
+        </div>
+        <div class="calculator-field">
+          <div class="calculator-label"><label for="calc-inquiries">Consultas por día que respondés tarde o no respondés</label><output for="calc-inquiries" id="calc-inquiries-value">10</output></div>
+          <p id="calc-inquiries-hint">Mensajes de pacientes que buscan un turno o información.</p>
+          <input id="calc-inquiries" type="range" min="0" max="100" step="1" value="10" aria-describedby="calc-inquiries-hint">
+          <div class="calculator-scale" aria-hidden="true"><span>0</span><span>100</span></div>
+        </div>
+      </form>
+      <div class="calculator-results">
+        <div role="status" aria-live="polite" aria-atomic="true">
+          <div class="calculator-total">
+            <span class="eyebrow">Ese tiempo te cuesta</span>
+            <p class="calculator-amount" id="calc-monthly-cost">$ 516.000</p>
+            <p id="calc-cost-caption">ARS por mes en tareas repetitivas.</p>
+            <p class="calculator-time">Son <strong id="calc-monthly-hours">86</strong> horas al mes dedicadas a la administración.</p>
+          </div>
+          <div class="calculator-risk">
+            <span class="eyebrow">También hay turnos en juego</span>
+            <p class="calculator-risk-number">Hasta <strong id="calc-monthly-inquiries">220</strong> consultas al mes en riesgo.</p>
+            <p>Cada respuesta que llega tarde puede ser un turno que se agenda en otro consultorio.</p>
+          </div>
+        </div>
+        <p class="calculator-assumptions">Estimación: horas semanales × 4,3 × costo por hora. Para las consultas, usamos 22 días de atención al mes. No todas se convierten en turnos; el costo del tiempo no es un ahorro garantizado.</p>
+        <a class="btn-wa" data-wa data-wa-from="calculadora" data-wa-msg="Hola! Hice la cuenta en la calculadora de SmartTurnos. Quiero ver cómo automatizar mi consultorio." href="https://wa.me/5493794721825" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-wa"/></svg>Quiero automatizar mi consultorio</a>
+      </div>
+    </div>
+    <noscript><p class="lede">Activá JavaScript para usar la calculadora. La cuenta es: horas por semana × 4,3 × costo por hora = costo mensual del tiempo.</p></noscript>
   </div>
 </section>
 

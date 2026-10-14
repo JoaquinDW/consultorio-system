@@ -20,6 +20,22 @@ por WhatsApp. `index.html` incluye una demo interactiva en
   de Argentina (UTC−03:00) y la moneda ARS.
 - Esta configuración no cambia el idioma del panel de producción.
 
+## Calculadora de automatización
+
+Las dos versiones incluyen `#calculadora`, después de los problemas habituales.
+Tres controles actualizan el costo mensual del tiempo administrativo y las
+consultas que se responden tarde o quedan sin respuesta:
+
+- Costo mensual: horas semanales del equipo × 4,3 semanas × costo por hora.
+- Tiempo mensual: horas semanales × 4,3.
+- Consultas en riesgo: consultas diarias × 22 días de atención.
+- ARS y USD mantienen valores independientes; el selector no convierte monedas.
+  Español empieza en ARS e inglés en USD.
+- Los supuestos se muestran junto al resultado. Las consultas no se presentan
+  como pacientes perdidos y el costo del tiempo no promete un ahorro efectivo.
+- Sin JavaScript se muestra la fórmula y se ocultan los controles interactivos.
+- El botón de WhatsApp usa `calculadora` como origen en los eventos existentes.
+
 ## Demo interactiva
 
 La landing embebe `demo/index.html`, con sus estilos y lógica en `demo.css`
