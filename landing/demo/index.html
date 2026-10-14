@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0f172a">
+  <title>Consultorio de ejemplo · SmartTurnos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="demo.css">
+  <script src="demo.js" defer></script>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="#inicio" data-nav="inicio">
+        <span class="brand-icon" data-icon="calendar"></span>
+        <span><strong>Turnos</strong><small id="clinic-name">Consultorio Demo</small></span>
+      </a>
+      <nav id="navigation" aria-label="Secciones del consultorio"></nav>
+      <div class="sidebar-note">Un consultorio de ejemplo.<br>Todo listo para que lo pruebes.</div>
+    </aside>
+    <div class="workspace">
+      <header class="topbar">
+        <span class="page-title" id="page-title">Agenda</span>
+        <form id="global-search" role="search">
+          <label class="sr" for="global-query">Buscar paciente por nombre o teléfono</label>
+          <span data-icon="search"></span>
+          <input id="global-query" type="search" placeholder="Buscar paciente…" autocomplete="off" maxlength="100">
+        </form>
+        <span class="user"><span class="avatar">CG</span><span>Carla</span></span>
+      </header>
+      <div class="demo-notice"><span><span class="demo-dot" aria-hidden="true"></span>Demo interactiva · Datos ficticios</span><button type="button" class="reset" data-action="reset"><span data-icon="reset"></span>Reiniciar</button></div>
+      <main id="content" tabindex="-1" aria-label="Contenido de la sección"></main>
+    </div>
+  </div>
+  <dialog id="modal" aria-labelledby="modal-title">
+    <div class="dialog-heading"><h2 id="modal-title"></h2><button class="icon-button" type="button" data-action="close" aria-label="Cerrar"><span data-icon="close"></span></button></div>
+    <div id="modal-body"></div>
+  </dialog>
+  <div class="toast" id="feedback" role="status" aria-live="polite" hidden></div>
+  <noscript><div class="no-script"><h1>Consultorio de ejemplo</h1><p>Activá JavaScript para navegar por la demo de SmartTurnos.</p><img src="../agenda-semana.webp" alt="Agenda semanal del consultorio con datos ficticios" width="1280" height="800"></div></noscript>
+</body>
+</html>
