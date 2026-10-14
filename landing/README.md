@@ -4,6 +4,13 @@ Página estática para la campaña de Meta Ads. Objetivo: que la persona escriba
 por WhatsApp. `index.html` (CSS y JS inline) incluye una demo interactiva en
 `demo/`. No depende de la app, de una base de datos ni de un build.
 
+La landing y toda la demo están en inglés, incluidos los metadatos, los
+mensajes precargados de WhatsApp y la captura para compartir en redes.
+Los precios mantienen sus importes originales en pesos argentinos y se
+identifican con `ARS`. La demo muestra fechas en inglés y conserva la zona
+horaria de Argentina (UTC−03:00). Esta traducción no cambia el idioma del
+panel de producción.
+
 ## Demo interactiva
 
 La landing embebe `demo/index.html`, con sus estilos y lógica en `demo.css`
