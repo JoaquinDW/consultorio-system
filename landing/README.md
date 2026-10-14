@@ -1,8 +1,27 @@
 # Landing de SmartTurnos (smartturnos.com)
 
 Página estática para la campaña de Meta Ads. Objetivo: que la persona escriba
-por WhatsApp. Un solo `index.html` (CSS y JS inline) más la captura
-`agenda-semana.webp`; no depende de la app ni de un build.
+por WhatsApp. `index.html` (CSS y JS inline) incluye una demo interactiva en
+`demo/`. No depende de la app, de una base de datos ni de un build.
+
+## Demo interactiva
+
+La landing embebe `demo/index.html`, con sus estilos y lógica en `demo.css`
+y `demo.js`. También se puede abrir `/demo/` en una pestaña independiente.
+Replica la navegación y el aspecto del panel real: Inicio, Agenda, Pacientes,
+Servicios, Recordatorios, WhatsApp y Configuración.
+
+- Datos ficticios en memoria; cada visitante tiene su propia demo. Recargar
+  o usar «Reiniciar» restaura el ejemplo. No usa cookies ni localStorage.
+- Los turnos de ejemplo se ubican en la semana actual de Argentina.
+- Permite buscar, crear y editar pacientes y servicios; crear, confirmar,
+  cancelar y reprogramar turnos. Valida horarios y superposiciones por profesional.
+- Los recordatorios y mensajes de WhatsApp se simulan: no hay conexiones a
+  la API ni envíos reales. Los ajustes de automatización son ilustrativos.
+- El iframe usa `sandbox="allow-scripts allow-forms"` para aislar la demo de la landing.
+- `agenda-semana.webp` se conserva para la imagen social y el fallback sin JavaScript.
+
+Publicá la carpeta `landing/` completa, incluyendo `demo/`.
 
 ## Antes de publicar
 

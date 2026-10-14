@@ -491,7 +491,7 @@ p { margin: 0; }
 .features h3 { font-size: 1.2rem; font-weight: 700; font-variation-settings: "wdth" 92; letter-spacing: -0.01em; margin-bottom: 4px; }
 .features p { color: var(--ink-2); font-size: .98rem; }
 
-/* Captura real */
+/* Demo del producto */
 .shot { margin: 0; display: grid; gap: 14px; }
 .browser {
   border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--surface);
@@ -501,7 +501,18 @@ p { margin: 0; }
 .browser-bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
 .browser-bar span { margin-left: 10px; font: 400 .72rem/1 var(--f-mono); color: var(--ink-3); }
 .shot figcaption { font-size: .875rem; color: var(--ink-3); }
-.shot-scroll { overflow-x: auto; }
+.demo-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+.demo-heading h2 { max-width: 20ch; }
+.demo-heading p { margin-top: 14px; max-width: 56ch; color: var(--ink-2); }
+.demo-open { display: inline-flex; align-items: center; gap: 8px; flex: none; min-height: 44px; font-size: .9rem; text-underline-offset: 4px; }
+.demo-open svg { width: 16px; height: 16px; }
+.demo-frame { display: block; width: 100%; height: 720px; border: 0; background: #f8fafc; }
+@media (max-width: 639px) {
+  .demo-heading { display: block; }
+  .demo-open { margin-top: 12px; }
+  .browser-bar span { font-size: .65rem; }
+  .demo-frame { height: 740px; }
+}
 
 /* Control: quién hace qué */
 .roles-head { display: grid; gap: 16px; max-width: 760px; margin-bottom: clamp(32px, 5vw, 48px); }
@@ -798,16 +809,21 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
   </div>
 </section>
 
-<section class="section" aria-labelledby="t-captura" style="padding-top: 0;">
+<section class="section" id="demo" aria-labelledby="t-demo" style="padding-top: 0;">
   <div class="wrap">
+    <div class="demo-heading">
+      <div>
+        <h2 class="h2" id="t-demo">Entrá. Tocá. Probá tu próxima agenda.</h2>
+        <p>Navegá por el consultorio de ejemplo, buscá un paciente o creá un turno. Así se siente usar SmartTurnos.</p>
+      </div>
+      <a class="demo-open" href="demo/" target="_blank" rel="noopener">Abrir demo en otra pestaña <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+    </div>
     <figure class="shot">
       <div class="browser">
-        <div class="browser-bar" aria-hidden="true"><i></i><i></i><i></i><span>Agenda · Semana del 12 al 18 de octubre</span></div>
-        <div class="shot-scroll">
-          <img src="agenda-semana.webp" width="1280" height="800" loading="lazy" decoding="async" alt="Captura de la agenda semanal de SmartTurnos: siete columnas de lunes a domingo con los turnos de cada día, su horario, paciente, servicio, profesional y estado (pendiente, confirmado, realizado o cancelado).">
-        </div>
+        <div class="browser-bar" aria-hidden="true"><i></i><i></i><i></i><span>smartturnos / consultorio de ejemplo</span></div>
+        <iframe class="demo-frame" src="demo/" title="Demo interactiva de SmartTurnos con datos ficticios" loading="lazy" sandbox="allow-scripts allow-forms" referrerpolicy="no-referrer" aria-describedby="t-captura"></iframe>
       </div>
-      <figcaption id="t-captura">Así se ve la agenda semanal por dentro, con datos de ejemplo.</figcaption>
+      <figcaption id="t-captura">Demo interactiva con datos ficticios. Los cambios duran hasta que reinicies la demo; los mensajes no se envían.</figcaption>
     </figure>
   </div>
 </section>
@@ -941,11 +957,13 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
   var dock = document.getElementById("dock");
   var heroCta = document.querySelector(".hero .btn-wa");
   var closing = document.querySelector(".closing");
+  var demoBrowser = document.querySelector("#demo .browser");
   if ("IntersectionObserver" in window && dock && heroCta) {
-    var heroVisible = true, closingVisible = false;
-    var sync = function () { dock.classList.toggle("is-on", !heroVisible && !closingVisible); };
+    var heroVisible = true, closingVisible = false, demoVisible = false;
+    var sync = function () { dock.classList.toggle("is-on", !heroVisible && !closingVisible && !demoVisible); };
     new IntersectionObserver(function (e) { heroVisible = e[0].isIntersecting; sync(); }).observe(heroCta);
     new IntersectionObserver(function (e) { closingVisible = e[0].isIntersecting; sync(); }).observe(closing);
+    if (demoBrowser) new IntersectionObserver(function (e) { demoVisible = e[0].isIntersecting; sync(); }).observe(demoBrowser);
   }
 
   // Escena del hero: la charla se reproduce una vez y el turno cae en la agenda.
