@@ -1,15 +1,16 @@
 <!doctype html>
-<html lang="en">
+<html lang="es-AR">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#0f172a">
-  <title>Sample clinic · SmartTurnos</title>
+  <title>Consultorio de ejemplo · SmartTurnos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="demo.css">
+  <script src="locales.js" defer></script>
   <script src="demo.js" defer></script>
 </head>
 <body>
@@ -17,30 +18,30 @@
     <aside class="sidebar">
       <a class="brand" href="#inicio" data-nav="inicio">
         <span class="brand-icon" data-icon="calendar"></span>
-        <span><strong>Appointments</strong><small id="clinic-name">Demo Clinic</small></span>
+        <span><strong data-i18n="Appointments">Turnos</strong><small id="clinic-name">Consultorio Demo</small></span>
       </a>
-      <nav id="navigation" aria-label="Clinic sections"></nav>
-      <div class="sidebar-note">A sample clinic.<br>Ready for you to explore.</div>
+      <nav id="navigation" aria-label="Secciones del consultorio" data-i18n-aria-label="Clinic sections"></nav>
+      <div class="sidebar-note"><span data-i18n="A sample clinic.">Un consultorio de ejemplo.</span><br><span data-i18n="Ready for you to explore.">Todo listo para que lo pruebes.</span></div>
     </aside>
     <div class="workspace">
       <header class="topbar">
-        <span class="page-title" id="page-title">Schedule</span>
+        <span class="page-title" id="page-title">Agenda</span>
         <form id="global-search" role="search">
-          <label class="sr" for="global-query">Search for a patient by name or phone</label>
+          <label class="sr" for="global-query" data-i18n="Search for a patient by name or phone">Buscar paciente por nombre o teléfono</label>
           <span data-icon="search"></span>
-          <input id="global-query" type="search" placeholder="Search patients…" autocomplete="off" maxlength="100">
+          <input id="global-query" type="search" placeholder="Buscar paciente…" data-i18n-placeholder="Search patients…" autocomplete="off" maxlength="100">
         </form>
         <span class="user"><span class="avatar">CG</span><span>Carla</span></span>
       </header>
-      <div class="demo-notice"><span><span class="demo-dot" aria-hidden="true"></span>Interactive demo · Fictional data</span><button type="button" class="reset" data-action="reset"><span data-icon="reset"></span>Reset</button></div>
-      <main id="content" tabindex="-1" aria-label="Section content"></main>
+      <div class="demo-notice"><span><span class="demo-dot" aria-hidden="true"></span><span data-i18n="Interactive demo · Fictional data">Demo interactiva · Datos ficticios</span></span><button type="button" class="reset" data-action="reset"><span data-icon="reset"></span><span data-i18n="Reset">Reiniciar</span></button></div>
+      <main id="content" tabindex="-1" aria-label="Contenido de la sección" data-i18n-aria-label="Section content"></main>
     </div>
   </div>
   <dialog id="modal" aria-labelledby="modal-title">
-    <div class="dialog-heading"><h2 id="modal-title"></h2><button class="icon-button" type="button" data-action="close" aria-label="Close"><span data-icon="close"></span></button></div>
+    <div class="dialog-heading"><h2 id="modal-title"></h2><button class="icon-button" type="button" data-action="close" aria-label="Cerrar" data-i18n-aria-label="Close"><span data-icon="close"></span></button></div>
     <div id="modal-body"></div>
   </dialog>
   <div class="toast" id="feedback" role="status" aria-live="polite" hidden></div>
-  <noscript><div class="no-script"><h1>Sample clinic</h1><p>Enable JavaScript to explore the SmartTurnos demo.</p><img src="../agenda-semana.webp" alt="Weekly clinic schedule with fictional data" width="1280" height="800"></div></noscript>
+  <noscript><div class="no-script"><h1>Consultorio de ejemplo</h1><p>Activá JavaScript para navegar por la demo de SmartTurnos.</p><img src="../agenda-semana.webp" alt="Agenda semanal del consultorio con datos ficticios" width="1280" height="800"></div></noscript>
 </body>
 </html>

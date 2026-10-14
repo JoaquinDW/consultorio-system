@@ -1,15 +1,22 @@
 # Landing de SmartTurnos (smartturnos.com)
 
 Página estática para la campaña de Meta Ads. Objetivo: que la persona escriba
-por WhatsApp. `index.html` (CSS y JS inline) incluye una demo interactiva en
+por WhatsApp. `index.html` incluye una demo interactiva en
 `demo/`. No depende de la app, de una base de datos ni de un build.
 
-La landing y toda la demo están en inglés, incluidos los metadatos, los
-mensajes precargados de WhatsApp y la captura para compartir en redes.
-Los precios mantienen sus importes originales en pesos argentinos y se
-identifican con `ARS`. La demo muestra fechas en inglés y conserva la zona
-horaria de Argentina (UTC−03:00). Esta traducción no cambia el idioma del
-panel de producción.
+## Idiomas
+
+- `/` abre en español por defecto, incluso si el navegador está en inglés.
+- `/en/` ofrece la landing completa en inglés. El selector Español / English
+  del encabezado permite cambiar de idioma y conservar la sección actual.
+- Ambas páginas son HTML estático y comparten `landing.css` y `landing.js`.
+  El selector también funciona sin JavaScript. Cada versión tiene sus propios
+  metadatos, mensajes de WhatsApp e imagen social; `hreflang` vincula las páginas.
+- La demo usa español por defecto y acepta `/demo/?lang=en` para inglés.
+  `demo.js` comparte la lógica; `locales.js` contiene los textos en español.
+  Fechas y precios se formatean según el idioma y conservan la zona horaria
+  de Argentina (UTC−03:00) y la moneda ARS.
+- Esta configuración no cambia el idioma del panel de producción.
 
 ## Demo interactiva
 
@@ -26,13 +33,14 @@ Servicios, Recordatorios, WhatsApp y Configuración.
 - Los recordatorios y mensajes de WhatsApp se simulan: no hay conexiones a
   la API ni envíos reales. Los ajustes de automatización son ilustrativos.
 - El iframe usa `sandbox="allow-scripts allow-forms"` para aislar la demo de la landing.
-- `agenda-semana.webp` se conserva para la imagen social y el fallback sin JavaScript.
+- `agenda-semana.webp` y `agenda-semana-en.webp` se usan como imágenes sociales
+  en español e inglés. La primera también es el fallback de la demo sin JavaScript.
 
 Publicá la carpeta `landing/` completa, incluyendo `demo/`.
 
 ## Antes de publicar
 
-En `index.html`, bloque `window.TURNOS`:
+En `landing.js`, bloque `window.TURNOS` (compartido por ambos idiomas):
 
 - `whatsapp`: número del consultorio con código de país, solo dígitos
   (ej. `5493794721825`).

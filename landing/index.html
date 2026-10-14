@@ -1,18 +1,21 @@
 <!doctype html>
-<html lang="en">
+<html lang="es-AR">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>SmartTurnos · Scheduling and WhatsApp for clinics</title>
-<meta name="description" content="SmartTurnos manages your clinic’s schedule, sends WhatsApp reminders, and uses a bot to answer patients, offer available times, and book appointments within your opening hours.">
+<title>SmartTurnos · Agenda y WhatsApp para consultorios</title>
+<meta name="description" content="SmartTurnos ordena la agenda de tu consultorio, manda los recordatorios por WhatsApp y un bot responde, ofrece horarios y reserva turnos dentro de tus horarios de atención.">
 <meta name="theme-color" content="#0b1222">
 <link rel="canonical" href="https://smartturnos.com/">
+<link rel="alternate" hreflang="es-AR" href="https://smartturnos.com/">
+<link rel="alternate" hreflang="en" href="https://smartturnos.com/en/">
+<link rel="alternate" hreflang="x-default" href="https://smartturnos.com/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://smartturnos.com/">
 <meta property="og:site_name" content="SmartTurnos">
-<meta property="og:locale" content="en_US">
-<meta property="og:title" content="SmartTurnos · Let appointments book themselves">
-<meta property="og:description" content="Scheduling, reminders, and a WhatsApp bot that books appointments for you. For solo practices and clinics with multiple practitioners.">
+<meta property="og:locale" content="es_AR">
+<meta property="og:title" content="SmartTurnos · Que el turno se agende solo">
+<meta property="og:description" content="Agenda, recordatorios y un bot de WhatsApp que da turnos por vos. Para consultorios de uno o varios profesionales.">
 <meta property="og:image" content="https://smartturnos.com/agenda-semana.webp">
 
 <!--
@@ -23,586 +26,14 @@
   posthog:  key pública del proyecto de PostHog (phc_…) y host de ingesta.
             Key vacía = no se carga nada.
 -->
-<script>
-  window.TURNOS = {
-    whatsapp: "5493794721825",
-    pixelId: "",
-    posthog: {
-      key: "phc_szMwRyawUvWLvfjUexFtRU7fzkifag2jetS86kMLrheB",
-      host: "https://us.i.posthog.com"
-    }
-  };
-</script>
-
 <!-- Meta Pixel: se carga solo si hay pixelId. Cada clic a WhatsApp manda el evento estándar "Contact". -->
-<script>
-  (function () {
-    var id = window.TURNOS && window.TURNOS.pixelId;
-    if (!id) return;
-    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
-    document,'script','https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', id);
-    fbq('track', 'PageView');
-  })();
-</script>
-
 <!-- PostHog: se carga solo si hay key. Registra las visitas ($pageview) y cada clic a WhatsApp como "whatsapp_click". -->
-<script>
-  (function () {
-    var ph = window.TURNOS && window.TURNOS.posthog;
-    if (!ph || !ph.key) return;
-    !function(t,e){var o,n,p,r;e.__SV||(window.posthog&&window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-    posthog.init(ph.key, {
-      api_host: ph.host || "https://us.i.posthog.com",
-      ui_host: "https://us.posthog.com",
-      defaults: "2025-05-24",
-      person_profiles: "identified_only"
-    });
-  })();
-</script>
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,500..800&family=Geist+Mono:wght@400;500&family=Onest:wght@400;500;600&display=swap">
 
-<style>
-/* Layout: una columna en el teléfono (el anuncio de Meta llega ahí); en escritorio el hero
-   se abre en texto + escena (chat → agenda), y el resto alterna bloques sobre una grilla de 12. */
-:root {
-  --bg: oklch(0.982 0.004 255);
-  --surface: oklch(1 0 0);
-  --sunk: oklch(0.958 0.008 255);
-  --ink: oklch(0.21 0.035 264);
-  --ink-2: oklch(0.43 0.03 258);
-  --ink-3: oklch(0.57 0.02 258);
-  --line: oklch(0.915 0.012 255);
-
-  --night: oklch(0.19 0.042 266);
-  --night-2: oklch(0.245 0.045 265);
-  --night-ink: oklch(0.975 0.006 250);
-  --night-ink-2: oklch(0.79 0.03 256);
-  --night-line: oklch(0.31 0.04 263);
-
-  --wa: oklch(0.775 0.195 150);
-  --wa-hover: oklch(0.73 0.185 150);
-  --wa-ink: oklch(0.22 0.06 155);
-  --wa-text: oklch(0.5 0.135 152);
-  --brand: oklch(0.585 0.23 27);
-
-  --chat-bg: oklch(0.955 0.012 165);
-  --bubble-in: oklch(1 0 0);
-  --bubble-out: oklch(0.925 0.07 148);
-
-  --ok-bg: oklch(0.955 0.05 160);   --ok-fg: oklch(0.47 0.12 162);   --ok-line: oklch(0.85 0.08 160);
-  --pend-bg: oklch(0.965 0.045 75); --pend-fg: oklch(0.56 0.15 55);  --pend-line: oklch(0.86 0.09 70);
-  --err-bg: oklch(0.965 0.025 25);  --err-fg: oklch(0.52 0.19 27);   --err-line: oklch(0.85 0.08 25);
-
-  --f-display: "Bricolage Grotesque", "Avenir Next Condensed", "Arial Narrow", system-ui, sans-serif;
-  --f-body: "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --f-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-
-  --t-hero: clamp(2.55rem, 1.5rem + 4.9vw, 5.1rem);
-  --t-h2: clamp(1.95rem, 1.3rem + 2.7vw, 3.2rem);
-  --t-h3: 1.25rem;
-  --t-body: 1.0625rem;
-  --t-small: 0.9rem;
-  --t-mono: 0.8125rem;
-
-  --r-sm: 6px;
-  --r-md: 12px;
-  --r-lg: 20px;
-  --shadow: 0 1px 2px oklch(0.2 0.04 264 / 0.06), 0 12px 32px -12px oklch(0.2 0.04 264 / 0.18);
-  --shadow-lg: 0 2px 4px oklch(0.1 0.04 264 / 0.2), 0 40px 80px -24px oklch(0.05 0.04 264 / 0.55);
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: oklch(0.165 0.022 264);
-    --surface: oklch(0.21 0.026 263);
-    --sunk: oklch(0.185 0.024 264);
-    --ink: oklch(0.96 0.006 255);
-    --ink-2: oklch(0.79 0.022 257);
-    --ink-3: oklch(0.65 0.02 257);
-    --line: oklch(0.3 0.026 262);
-    --night: oklch(0.125 0.03 266);
-    --night-2: oklch(0.18 0.035 265);
-    --night-line: oklch(0.27 0.035 263);
-    --wa-text: oklch(0.8 0.17 150);
-    --chat-bg: oklch(0.17 0.02 230);
-    --bubble-in: oklch(0.25 0.022 245);
-    --bubble-out: oklch(0.36 0.075 158);
-    --ok-bg: oklch(0.27 0.05 162);   --ok-fg: oklch(0.83 0.13 160);  --ok-line: oklch(0.4 0.07 162);
-    --pend-bg: oklch(0.28 0.05 65);  --pend-fg: oklch(0.85 0.13 75);  --pend-line: oklch(0.42 0.08 65);
-    --err-bg: oklch(0.27 0.05 25);   --err-fg: oklch(0.8 0.13 25);   --err-line: oklch(0.42 0.1 25);
-    --shadow: 0 1px 2px oklch(0 0 0 / 0.3), 0 12px 32px -12px oklch(0 0 0 / 0.5);
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: oklch(0.165 0.022 264);
-  --surface: oklch(0.21 0.026 263);
-  --sunk: oklch(0.185 0.024 264);
-  --ink: oklch(0.96 0.006 255);
-  --ink-2: oklch(0.79 0.022 257);
-  --ink-3: oklch(0.65 0.02 257);
-  --line: oklch(0.3 0.026 262);
-  --night: oklch(0.125 0.03 266);
-  --night-2: oklch(0.18 0.035 265);
-  --night-line: oklch(0.27 0.035 263);
-  --wa-text: oklch(0.8 0.17 150);
-  --chat-bg: oklch(0.17 0.02 230);
-  --bubble-in: oklch(0.25 0.022 245);
-  --bubble-out: oklch(0.36 0.075 158);
-  --ok-bg: oklch(0.27 0.05 162);   --ok-fg: oklch(0.83 0.13 160);  --ok-line: oklch(0.4 0.07 162);
-  --pend-bg: oklch(0.28 0.05 65);  --pend-fg: oklch(0.85 0.13 75);  --pend-line: oklch(0.42 0.08 65);
-  --err-bg: oklch(0.27 0.05 25);   --err-fg: oklch(0.8 0.13 25);   --err-line: oklch(0.42 0.1 25);
-  --shadow: 0 1px 2px oklch(0 0 0 / 0.3), 0 12px 32px -12px oklch(0 0 0 / 0.5);
-  color-scheme: dark;
-}
-
-*, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--ink);
-  font: 400 var(--t-body)/1.6 var(--f-body);
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-}
-img { max-width: 100%; height: auto; display: block; }
-a { color: inherit; }
-h1, h2, h3 { margin: 0; font-family: var(--f-display); text-wrap: balance; }
-p { margin: 0; }
-:focus-visible { outline: 3px solid var(--wa); outline-offset: 3px; border-radius: 4px; }
-[hidden] { display: none !important; }
-.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-
-.wrap { max-width: 1180px; margin-inline: auto; padding-inline: clamp(16px, 4.5vw, 36px); }
-.mono { font-family: var(--f-mono); font-size: var(--t-mono); font-variant-numeric: tabular-nums; letter-spacing: 0; }
-.eyebrow {
-  font-family: var(--f-mono); font-size: 0.78rem; font-weight: 500;
-  letter-spacing: 0.08em; text-transform: uppercase; color: var(--wa-text);
-}
-.h2 { font-size: var(--t-h2); font-weight: 750; font-variation-settings: "wdth" 88, "opsz" 72; line-height: 1.02; letter-spacing: -0.02em; }
-.lede { color: var(--ink-2); max-width: 58ch; font-size: 1.125rem; }
-
-/* ——— Botón WhatsApp ——— */
-.btn-wa {
-  display: inline-flex; align-items: center; justify-content: center; gap: 0.6em;
-  min-height: 56px; padding: 0 1.5em;
-  background: var(--wa); color: var(--wa-ink);
-  font: 600 1.0625rem/1 var(--f-body); text-decoration: none;
-  border-radius: 999px;
-  box-shadow: 0 0 0 0 oklch(0.775 0.195 150 / 0.5), 0 10px 24px -10px oklch(0.6 0.19 150 / 0.7);
-  transition: background .2s, transform .2s;
-  -webkit-tap-highlight-color: transparent;
-}
-.btn-wa:hover { background: var(--wa-hover); transform: translateY(-1px); }
-.btn-wa:active { transform: translateY(1px); }
-.btn-wa svg { width: 1.35em; height: 1.35em; flex: none; }
-.btn-wa.is-lg { min-height: 64px; font-size: 1.15rem; padding: 0 1.8em; }
-.btn-ghost {
-  display: inline-flex; align-items: center; gap: .4em; min-height: 56px; padding: 0 0.4em;
-  color: var(--night-ink-2); text-decoration: none; font-weight: 500;
-}
-.btn-ghost:hover { color: var(--night-ink); }
-
-/* ——— Barra superior ——— */
-.top {
-  position: absolute; inset: 0 0 auto 0; z-index: 10;
-  padding-top: env(safe-area-inset-top, 0px);
-}
-.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 72px; }
-.logo { display: inline-flex; align-items: center; gap: 10px; color: var(--night-ink); text-decoration: none; }
-.logo-mark {
-  width: 34px; height: 34px; border-radius: 9px; background: var(--brand);
-  display: grid; place-items: center; color: #fff;
-}
-.logo-mark svg { width: 20px; height: 20px; }
-.logo b { font: 700 1.3rem/1 var(--f-display); font-variation-settings: "wdth" 90; letter-spacing: -0.01em; }
-.logo b span { font-weight: 500; color: var(--night-ink-2); }
-.nav { display: none; gap: 28px; }
-.nav a { color: var(--night-ink-2); text-decoration: none; font-size: .95rem; }
-.nav a:hover { color: var(--night-ink); }
-.top .btn-wa { min-height: 44px; font-size: .95rem; padding: 0 1.1em; }
-@media (min-width: 900px) { .nav { display: flex; } }
-
-/* ——— Hero ——— */
-.hero {
-  position: relative; isolation: isolate; overflow: hidden;
-  background: var(--night); color: var(--night-ink);
-  padding-block: calc(96px + env(safe-area-inset-top, 0px)) 72px;
-}
-/* Fondo: las líneas de hora de una agenda */
-.hero::before {
-  content: ""; position: absolute; inset: 0; z-index: -2;
-  background:
-    repeating-linear-gradient(to bottom, transparent 0 63px, var(--night-line) 63px 64px),
-    radial-gradient(60% 50% at 78% 40%, oklch(0.5 0.15 152 / 0.22), transparent 70%),
-    radial-gradient(50% 60% at 10% 100%, oklch(0.45 0.12 262 / 0.35), transparent 70%);
-  mask-image: linear-gradient(to bottom, black 55%, transparent);
-  -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent);
-}
-.hours {
-  position: absolute; inset: 0 auto 0 0; z-index: -1; display: none;
-  padding-left: 18px; color: var(--night-line);
-}
-.hours span { display: block; height: 64px; font: 500 11px/64px var(--f-mono); transform: translateY(-32px); }
-@media (min-width: 1280px) { .hours { display: block; } }
-
-.hero-grid { display: grid; gap: 56px; align-items: center; }
-@media (min-width: 980px) { .hero-grid { grid-template-columns: 1.05fr 1fr; gap: 40px; } }
-
-.hero-copy { display: grid; gap: 24px; justify-items: start; min-width: 0; }
-.pill {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 6px 12px 6px 8px; border-radius: 999px;
-  border: 1px solid var(--night-line); background: oklch(1 0 0 / 0.04);
-  font-size: .85rem; color: var(--night-ink-2);
-}
-.pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--wa); box-shadow: 0 0 0 4px oklch(0.775 0.195 150 / 0.2); }
-.hero h1 {
-  font-size: var(--t-hero); font-weight: 760; line-height: 0.98; letter-spacing: -0.018em;
-  font-variation-settings: "wdth" 86, "opsz" 96;
-}
-.hero h1 em { font-style: normal; color: var(--wa); display: block; }
-.hero .lede { color: var(--night-ink-2); font-size: clamp(1.06rem, 1rem + .3vw, 1.2rem); }
-.hero .lede strong { color: var(--night-ink); font-weight: 600; }
-.cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
-.cta-note { font-size: .875rem; color: var(--night-ink-2); display: flex; align-items: center; gap: 8px; }
-.cta-note svg { width: 16px; height: 16px; color: var(--wa); flex: none; }
-.facts { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 8px 0 0; list-style: none; }
-.facts li.offer { color: var(--wa); border-color: oklch(0.775 0.195 150 / 0.45); background: oklch(0.775 0.195 150 / 0.1); font-weight: 600; }
-.facts li {
-  font-size: .85rem; color: var(--night-ink-2); padding: 6px 12px; border-radius: 999px;
-  background: oklch(1 0 0 / 0.05); border: 1px solid var(--night-line);
-}
-
-/* Escena: teléfono + agenda. En el teléfono se apilan (la agenda tapa solo la barra de escribir);
-   desde 620px van lado a lado. */
-.stage { position: relative; min-width: 0; display: flex; flex-direction: column; align-items: center; }
-@media (min-width: 620px) { .stage { flex-direction: row; justify-content: center; } }
-
-.phone {
-  width: min(300px, 84vw); flex: none; border-radius: 40px; padding: 10px;
-  background: oklch(0.12 0.02 265); box-shadow: var(--shadow-lg), inset 0 0 0 1.5px oklch(0.4 0.03 260);
-  position: relative; z-index: 1;
-}
-.screen { border-radius: 31px; overflow: hidden; background: var(--chat-bg); color: var(--ink); }
-.chat-head {
-  display: flex; align-items: center; gap: 10px; padding: 26px 14px 10px;
-  background: var(--surface); border-bottom: 1px solid var(--line);
-}
-.avatar {
-  width: 34px; height: 34px; border-radius: 50%; flex: none;
-  background: var(--brand); color: #fff; display: grid; place-items: center;
-}
-.avatar svg { width: 18px; height: 18px; }
-.chat-head b { display: block; font-size: .9rem; line-height: 1.2; font-weight: 600; }
-.chat-status { font-size: .75rem; color: var(--ink-3); line-height: 1.2; }
-.chat-status.is-typing { color: var(--wa-text); }
-.chat {
-  height: 410px; padding: 14px 12px; overflow: hidden;
-  display: flex; flex-direction: column; justify-content: flex-end; gap: 6px;
-  font-size: .845rem; line-height: 1.4;
-}
-.day-tag {
-  align-self: center; font-size: .7rem; padding: 3px 10px; border-radius: 8px;
-  background: var(--surface); color: var(--ink-3); box-shadow: 0 1px 1px oklch(0 0 0 / .06); margin-bottom: 4px;
-}
-.msg {
-  max-width: 84%; padding: 7px 10px 6px; border-radius: 12px; position: relative;
-  box-shadow: 0 1px 1px oklch(0 0 0 / .08);
-}
-.msg.in { align-self: flex-start; background: var(--bubble-in); border-top-left-radius: 4px; }
-.msg.out { align-self: flex-end; background: var(--bubble-out); border-top-right-radius: 4px; }
-.msg time { display: block; text-align: right; font: 400 .66rem/1 var(--f-mono); color: var(--ink-3); margin-top: 3px; }
-.slots { display: flex; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
-.slots span {
-  font: 500 .75rem/1 var(--f-mono); padding: 6px 9px; border-radius: 8px;
-  border: 1px solid var(--line); background: var(--sunk);
-}
-.slots span.is-picked { border-color: var(--wa-text); color: var(--wa-text); background: var(--ok-bg); }
-.msg.is-entering { animation: msg-in .38s cubic-bezier(.2,.9,.3,1.2) both; }
-@keyframes msg-in { from { opacity: 0; transform: translateY(10px) scale(.96); } }
-.composer { display: flex; align-items: center; gap: 8px; padding: 8px 10px 14px; background: var(--chat-bg); }
-.composer span { flex: 1; background: var(--surface); border-radius: 999px; padding: 9px 14px; font-size: .8rem; color: var(--ink-3); }
-.composer i { width: 34px; height: 34px; border-radius: 50%; background: var(--wa); flex: none; }
-.replay {
-  margin-left: auto; background: none; border: 0; color: var(--ink-3); font: 500 .72rem var(--f-body);
-  display: inline-flex; gap: 5px; align-items: center; cursor: pointer; padding: 6px; border-radius: 6px;
-}
-.replay:hover { color: var(--ink); background: var(--sunk); }
-.replay svg { width: 18px; height: 18px; }
-
-.agenda-card {
-  position: relative; z-index: 2; flex: none; margin-top: -48px;
-  width: min(300px, 88vw);
-  background: var(--surface); color: var(--ink);
-  border-radius: var(--r-md); box-shadow: var(--shadow-lg);
-  border: 1px solid var(--line);
-}
-@media (min-width: 620px) { .agenda-card { width: 268px; margin: 64px 0 0 -14px; align-self: center; } }
-.ac-head { padding: 12px 14px 10px; border-bottom: 1px solid var(--line); }
-.ac-head b { font: 700 1rem/1.2 var(--f-display); font-variation-settings: "wdth" 92; display: block; }
-.ac-head span { font-size: .72rem; color: var(--ink-3); }
-.ac-rows { padding: 8px; display: grid; gap: 6px; }
-.row {
-  display: grid; grid-template-columns: 44px 1fr; gap: 8px; align-items: start;
-  padding: 8px 8px; border-radius: 8px; border: 1px solid var(--line); font-size: .8rem; line-height: 1.3;
-}
-.row .mono { font-weight: 500; color: var(--ink); padding-top: 1px; }
-.row small { display: block; color: var(--ink-3); font-size: .72rem; margin-top: 2px; }
-.row.is-free { border-style: dashed; color: var(--ink-3); background: transparent; }
-.row.is-new { border-color: var(--wa-text); background: var(--ok-bg); }
-.row.is-new.flash { animation: flash 1.2s ease-out; }
-@keyframes flash { 0% { box-shadow: 0 0 0 0 oklch(0.775 0.195 150 / .7); } 100% { box-shadow: 0 0 0 14px oklch(0.775 0.195 150 / 0); } }
-.chip {
-  display: inline-block; font-size: .7rem; font-weight: 500; line-height: 1; padding: 3px 6px;
-  border-radius: 4px; border: 1px solid; vertical-align: 1px; margin-left: 4px; white-space: nowrap;
-}
-.chip.ok { color: var(--ok-fg); background: var(--ok-bg); border-color: var(--ok-line); }
-.chip.pend { color: var(--pend-fg); background: var(--pend-bg); border-color: var(--pend-line); }
-.toast {
-  position: absolute; z-index: 3; top: -46px; right: 8px; white-space: nowrap;
-  display: flex; align-items: center; gap: 8px;
-  background: var(--surface); color: var(--ink); border: 1px solid var(--line);
-  padding: 8px 12px; border-radius: 10px; box-shadow: var(--shadow); font-size: .78rem; font-weight: 500;
-  transition: opacity .3s, transform .3s;
-}
-.toast svg { width: 15px; height: 15px; color: var(--ok-fg); }
-.toast.is-hidden { opacity: 0; transform: translateY(6px); }
-
-/* ——— Sections ——— */
-.section { padding-block: clamp(72px, 10vw, 128px); }
-.section-head { display: grid; gap: 16px; margin-bottom: clamp(36px, 5vw, 56px); max-width: 760px; }
-
-/* Dolores */
-.pains-intro { display: grid; gap: 16px; max-width: 820px; margin-bottom: clamp(40px, 6vw, 72px); }
-.pains-intro .h2 { font-size: clamp(2.1rem, 1.3rem + 3.4vw, 3.9rem); }
-.pain-list { display: grid; gap: clamp(56px, 8vw, 104px); }
-.pain { display: grid; gap: 28px; align-items: center; }
-@media (min-width: 900px) {
-  .pain { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 64px; }
-  .pain:nth-child(even) .pain-copy { order: 2; }
-}
-.pain-copy { display: grid; gap: 14px; min-width: 0; }
-.pain-copy .tag { font: 500 .78rem/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--err-fg); }
-.pain-copy h3 { font-size: clamp(1.7rem, 1.2rem + 1.9vw, 2.5rem); font-weight: 750; line-height: 1.05; letter-spacing: -0.015em; font-variation-settings: "wdth" 88, "opsz" 72; }
-.pain-copy p { color: var(--ink-2); max-width: 46ch; font-size: 1.08rem; }
-.pain-copy .fix { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; padding-top: 14px; margin-top: 4px; border-top: 1px solid var(--line); color: var(--ink); font-size: 1rem; }
-.pain-copy .fix svg { width: 22px; height: 22px; color: var(--wa-text); margin-top: 1px; }
-.pain-copy .fix b { font-weight: 600; }
-@media (max-width: 899px) {
-  .pain { gap: 14px; }
-  .pain-copy { display: contents; }
-  .pain-visual { order: 1; margin-block: 10px 4px; }
-  .pain-copy .fix { order: 2; }
-}
-.pain-visual { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: clamp(16px, 3vw, 28px); box-shadow: var(--shadow); min-width: 0; }
-
-/* Dolor 1: bandeja desbordada */
-.inbox-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
-.inbox-head b { font: 700 1.15rem/1 var(--f-display); font-variation-settings: "wdth" 92; }
-.badge { background: var(--wa); color: var(--wa-ink); font: 600 .78rem/1 var(--f-body); padding: 5px 9px; border-radius: 999px; font-variant-numeric: tabular-nums; }
-.chats { display: grid; }
-.chat-row { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: .88rem; }
-.chat-row:last-child { border-bottom: 0; }
-.chat-row .av { width: 38px; height: 38px; border-radius: 50%; background: var(--sunk); color: var(--ink-3); display: grid; place-items: center; font: 600 .78rem/1 var(--f-body); }
-.chat-row b { display: block; font-weight: 600; line-height: 1.3; }
-.chat-row span { min-width: 0; }
-.chat-row small { display: block; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.chat-row .meta { display: grid; justify-items: end; gap: 5px; font: 400 .7rem/1 var(--f-mono); color: var(--wa-text); }
-.chat-row .meta .badge { font-size: .7rem; padding: 4px 7px; }
-.chat-row.is-faded { opacity: .45; }
-
-/* Dolor 2: el que no recibió respuesta */
-.lost { display: grid; gap: 8px; background: var(--chat-bg); border-radius: var(--r-md); padding: 16px 14px; font-size: .9rem; line-height: 1.4; }
-.lost .msg { max-width: 82%; }
-.lost .msg.in { justify-self: start; }
-.lost .msg.out { justify-self: end; }
-.lost .gap { justify-self: center; }
-.lost .msg time { display: flex; justify-content: flex-end; gap: 4px; align-items: center; }
-.lost .ticks { color: var(--ink-3); letter-spacing: -3px; }
-.lost .day-tag { margin: 4px 0; }
-.gap {
-  align-self: center; display: inline-flex; align-items: center; gap: 8px; margin: 6px 0;
-  font: 500 .78rem/1 var(--f-mono); color: var(--err-fg); background: var(--err-bg); border: 1px solid var(--err-line);
-  padding: 7px 12px; border-radius: 999px; font-variant-numeric: tabular-nums;
-}
-.gap svg { width: 14px; height: 14px; }
-
-/* Dolor 3: el día partido en pedacitos */
-.day { display: grid; gap: 10px; }
-.day-row { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; align-items: center; font-size: .8rem; color: var(--ink-2); }
-.day-track { position: relative; height: 34px; border-radius: 6px; background: var(--sunk); border: 1px solid var(--line); overflow: hidden; }
-.day-track .c { position: absolute; top: 4px; bottom: 4px; border-radius: 4px; background: color-mix(in oklch, var(--ink) 32%, var(--surface)); }
-.day-track .x { position: absolute; top: 3px; bottom: 3px; width: 3px; margin-left: -1.5px; border-radius: 2px; background: var(--err-fg); }
-.day-axis { position: relative; height: 14px; margin-left: 88px; font: 400 .68rem/1 var(--f-mono); color: var(--ink-3); }
-.day-axis span { position: absolute; transform: translateX(-50%); }
-.day-axis span:first-child { transform: none; } .day-axis span:last-child { transform: translateX(-100%); }
-.day-sum { display: flex; flex-wrap: wrap; gap: 6px 18px; padding-top: 14px; margin-top: 6px; border-top: 1px solid var(--line); font-size: .85rem; color: var(--ink-2); }
-.day-sum b { font: 700 1.6rem/1 var(--f-display); color: var(--err-fg); font-variant-numeric: tabular-nums; margin-right: 6px; }
-.day-sum .k { display: inline-flex; align-items: center; gap: 6px; }
-.day-sum .k i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
-.pains-cta { display: grid; justify-items: start; gap: 16px; margin-top: clamp(56px, 8vw, 96px); padding: clamp(24px, 4vw, 40px); border-radius: var(--r-lg); background: var(--night); color: var(--night-ink); }
-.pains-cta p { font: 700 clamp(1.5rem, 1.1rem + 1.6vw, 2.2rem)/1.1 var(--f-display); font-variation-settings: "wdth" 88; letter-spacing: -0.01em; max-width: 26ch; text-wrap: balance; }
-.pains-cta p em { font-style: normal; color: var(--wa); }
-@media (min-width: 760px) { .pains-cta { grid-template-columns: 1fr auto; align-items: center; } }
-
-/* Paso a paso */
-.flow { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: paso; }
-.step { display: grid; grid-template-columns: 48px 1fr; gap: 0 18px; position: relative; padding-bottom: 36px; }
-.step:last-child { padding-bottom: 0; }
-.step::before {
-  counter-increment: paso; content: counter(paso);
-  width: 48px; height: 48px; border-radius: 50%;
-  display: grid; place-items: center; font: 700 1.25rem/1 var(--f-display);
-  background: var(--ink); color: var(--bg); grid-row: span 3;
-}
-.step::after {
-  content: ""; position: absolute; left: 23px; top: 56px; bottom: 8px; width: 2px;
-  background: repeating-linear-gradient(to bottom, var(--line) 0 6px, transparent 6px 11px);
-}
-.step:last-child::after { display: none; }
-.step .who { font: 500 .75rem/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); padding-top: 6px; }
-.step h3 { font-size: 1.45rem; font-weight: 700; font-variation-settings: "wdth" 90; letter-spacing: -0.01em; margin: 8px 0 6px; }
-.step p { color: var(--ink-2); max-width: 46ch; }
-@media (min-width: 900px) {
-  .flow { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px; }
-  .step { grid-template-columns: 1fr; padding-bottom: 0; }
-  .step::before { grid-row: auto; margin-bottom: 16px; }
-  .step::after { left: 60px; right: -16px; top: 23px; bottom: auto; width: auto; height: 2px;
-    background: repeating-linear-gradient(to right, var(--line) 0 6px, transparent 6px 11px); }
-  .step .who { padding-top: 0; }
-}
-
-/* Features: lista simple */
-.features { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); border-top: 1px solid var(--line); }
-@media (min-width: 640px) { .features { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 40px; } }
-@media (min-width: 980px) { .features { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.features li { display: grid; grid-template-columns: 44px 1fr; gap: 16px; padding: 26px 0; border-bottom: 1px solid var(--line); align-items: start; }
-.features .ic { width: 44px; height: 44px; border-radius: 12px; background: var(--ok-bg); color: var(--wa-text); display: grid; place-items: center; }
-.features .ic svg { width: 22px; height: 22px; }
-.features h3 { font-size: 1.2rem; font-weight: 700; font-variation-settings: "wdth" 92; letter-spacing: -0.01em; margin-bottom: 4px; }
-.features p { color: var(--ink-2); font-size: .98rem; }
-
-/* Demo del producto */
-.shot { margin: 0; display: grid; gap: 14px; }
-.browser {
-  border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--surface);
-  box-shadow: var(--shadow);
-}
-.browser-bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
-.browser-bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
-.browser-bar span { margin-left: 10px; font: 400 .72rem/1 var(--f-mono); color: var(--ink-3); }
-.shot figcaption { font-size: .875rem; color: var(--ink-3); }
-.demo-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
-.demo-heading h2 { max-width: 20ch; }
-.demo-heading p { margin-top: 14px; max-width: 56ch; color: var(--ink-2); }
-.demo-open { display: inline-flex; align-items: center; gap: 8px; flex: none; min-height: 44px; font-size: .9rem; text-underline-offset: 4px; }
-.demo-open svg { width: 16px; height: 16px; }
-.demo-frame { display: block; width: 100%; height: 720px; border: 0; background: #f8fafc; }
-@media (max-width: 639px) {
-  .demo-heading { display: block; }
-  .demo-open { margin-top: 12px; }
-  .browser-bar span { font-size: .65rem; }
-  .demo-frame { height: 740px; }
-}
-
-/* Control: quién hace qué */
-.roles-head { display: grid; gap: 16px; max-width: 760px; margin-bottom: clamp(32px, 5vw, 48px); }
-.roles { display: grid; gap: 14px; }
-@media (min-width: 820px) { .roles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.role { border-radius: var(--r-lg); padding: clamp(20px, 3vw, 32px); display: grid; gap: 18px; align-content: start; min-width: 0; border: 1px solid var(--line); background: var(--surface); }
-.role.bot { background: var(--ok-bg); border-color: var(--ok-line); }
-.role-top { display: flex; align-items: center; gap: 14px; }
-.role-top .ic { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; flex: none; }
-.role.bot .ic { background: var(--wa); color: var(--wa-ink); }
-.role.team .ic { background: var(--ink); color: var(--bg); }
-.role-top .ic svg { width: 24px; height: 24px; }
-.role-top h3 { font-size: clamp(1.4rem, 1.1rem + 1vw, 1.8rem); font-weight: 750; font-variation-settings: "wdth" 88; letter-spacing: -0.01em; line-height: 1.05; }
-.role-top small { display: block; font: 500 .75rem/1.3 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin-top: 4px; }
-.role.bot .role-top small { color: var(--ok-fg); }
-.role ul { list-style: none; margin: 0; padding: 0; display: grid; }
-.role li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); align-items: start; }
-.role.bot li { border-color: var(--ok-line); }
-.role li svg { width: 18px; height: 18px; margin-top: 3px; }
-.role.bot li svg { color: var(--ok-fg); }
-.role.team li svg { color: var(--ink-2); }
-.role li b { font-weight: 600; }
-.role li span { color: var(--ink-2); }
-.role li span b { color: var(--ink); }
-.always { display: flex; flex-wrap: wrap; gap: 10px 28px; margin-top: 22px; padding: 18px 22px; border-radius: var(--r-md); border: 1px dashed var(--line); font-size: .92rem; color: var(--ink-2); }
-.always > b { font: 500 .75rem/1.7 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
-.always span { display: inline-flex; gap: 8px; align-items: center; }
-.always svg { width: 17px; height: 17px; color: var(--wa-text); flex: none; }
-
-/* Para quién */
-.who-list { display: flex; flex-wrap: wrap; gap: 10px; padding: 0; margin: 0; list-style: none; }
-.who-list li {
-  font: 600 clamp(1.05rem, .95rem + .6vw, 1.45rem)/1 var(--f-display); font-variation-settings: "wdth" 88;
-  padding: 14px 20px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
-}
-
-/* FAQ */
-.faq { display: grid; gap: 0; max-width: 820px; }
-.faq details { border-top: 1px solid var(--line); }
-.faq details:last-child { border-bottom: 1px solid var(--line); }
-.faq summary {
-  list-style: none; cursor: pointer; padding: 22px 44px 22px 0; position: relative;
-  font: 650 1.15rem/1.3 var(--f-display); font-variation-settings: "wdth" 94;
-}
-.faq summary::-webkit-details-marker { display: none; }
-.faq summary::after {
-  content: ""; position: absolute; right: 6px; top: 50%; width: 14px; height: 14px; margin-top: -9px;
-  border-right: 2px solid var(--ink-3); border-bottom: 2px solid var(--ink-3); transform: rotate(45deg);
-  transition: transform .25s;
-}
-.faq details[open] summary::after { transform: rotate(-135deg); margin-top: -2px; }
-.faq details p { padding: 0 0 22px; color: var(--ink-2); max-width: 64ch; }
-.faq details a { color: var(--wa-text); font-weight: 500; }
-
-/* Cierre */
-.closing { background: var(--night); color: var(--night-ink); position: relative; overflow: hidden; isolation: isolate; }
-.closing::before {
-  content: ""; position: absolute; inset: 0; z-index: -1;
-  background: radial-gradient(55% 80% at 50% 120%, oklch(0.6 0.17 152 / 0.35), transparent 70%);
-}
-.closing .wrap { display: grid; gap: 28px; justify-items: center; text-align: center; }
-.closing .h2 { font-size: clamp(2.2rem, 1.4rem + 3.8vw, 4.2rem); max-width: 16ch; }
-.closing .lede { color: var(--night-ink-2); text-align: center; }
-.closing .offer-note { font-size: 1rem; color: var(--night-ink-2); }
-.closing .offer-note b { color: var(--wa); font-weight: 600; }
-.closing .alt { font-size: .9rem; color: var(--night-ink-2); }
-.closing .alt .mono { color: var(--night-ink); font-size: .9rem; user-select: all; }
-
-footer { background: var(--night); color: var(--night-ink-2); border-top: 1px solid var(--night-line); font-size: .85rem; padding-block: 28px calc(28px + env(safe-area-inset-bottom, 0px)); }
-footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
-@media (max-width: 899px) { footer { padding-bottom: calc(108px + env(safe-area-inset-bottom, 0px)); } }
-
-/* Barra fija en el teléfono */
-.dock {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
-  background: color-mix(in oklch, var(--bg) 82%, transparent);
-  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-  border-top: 1px solid var(--line);
-  transform: translateY(110%); transition: transform .35s cubic-bezier(.2,.8,.2,1);
-}
-.dock.is-on { transform: none; }
-.dock .btn-wa { width: 100%; }
-@media (min-width: 900px) { .dock { display: none; } }
-
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after { animation: none !important; transition: none !important; }
-}
-</style>
+<link rel="stylesheet" href="landing.css">
+<script src="landing.js" defer></script>
 </head>
 <body>
 
@@ -625,18 +56,22 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
 
 <header class="top">
   <div class="wrap">
-    <a class="logo" href="#" aria-label="SmartTurnos, home">
+    <a class="logo" href="#" aria-label="SmartTurnos, inicio">
       <span class="logo-mark"><svg><use href="#i-cal"/></svg></span>
       <b><span>Smart</span>Turnos</b>
     </a>
-    <nav class="nav" aria-label="Sections">
-      <a href="#como-funciona">How it works</a>
-      <a href="#funciones">Features</a>
-      <a href="#preguntas">FAQs</a>
+    <nav class="nav" aria-label="Secciones">
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#funciones">Funciones</a>
+      <a href="#preguntas">Preguntas</a>
     </nav>
-    <a class="btn-wa" data-wa data-wa-from="header" data-wa-msg="Hi! I saw the SmartTurnos website and would like to learn more for my clinic." href="https://wa.me/5493794721825" target="_blank" rel="noopener">
-      <svg aria-hidden="true"><use href="#i-wa"/></svg>Message us
+    <a class="btn-wa" data-wa data-wa-from="header" data-wa-msg="Hola! Vi la web de SmartTurnos y quiero saber más para mi consultorio." href="https://wa.me/5493794721825" target="_blank" rel="noopener">
+      <svg aria-hidden="true"><use href="#i-wa"/></svg>Escribinos
     </a>
+    <nav class="language-switch" aria-label="Idioma">
+      <a href="./" lang="es-AR" hreflang="es-AR" data-language-link aria-current="page">Español</a>
+      <a href="en/" lang="en" hreflang="en" data-language-link>English</a>
+    </nav>
   </div>
 </header>
 
@@ -647,21 +82,21 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
   </div>
   <div class="wrap hero-grid">
     <div class="hero-copy">
-      <span class="pill"><i></i>Scheduling + WhatsApp for clinics</span>
-      <h1 id="titulo">Your patients already message you on WhatsApp. <em>Let appointments book themselves.</em></h1>
-      <p class="lede">Stop answering your phone all day. SmartTurnos <strong>replies to patients, books their appointments, and reminds them to attend</strong>, while you focus on patient care.</p>
+      <span class="pill"><i></i>Agenda + WhatsApp para consultorios</span>
+      <h1 id="titulo">Tus pacientes ya te escriben por WhatsApp. <em>Que el turno se agende solo.</em></h1>
+      <p class="lede">Dejá de contestar el celular todo el día. SmartTurnos <strong>responde a tus pacientes, les da turno y les recuerda que vengan</strong>, mientras vos atendés.</p>
       <div class="cta-row">
-        <a class="btn-wa is-lg" data-wa data-wa-from="hero" data-wa-msg="Hi! I saw the SmartTurnos website and would like to learn more for my clinic." href="https://wa.me/5493794721825" target="_blank" rel="noopener">
-          <svg aria-hidden="true"><use href="#i-wa"/></svg>Chat with us on WhatsApp
+        <a class="btn-wa is-lg" data-wa data-wa-from="hero" data-wa-msg="Hola! Vi la web de SmartTurnos y quiero saber más para mi consultorio." href="https://wa.me/5493794721825" target="_blank" rel="noopener">
+          <svg aria-hidden="true"><use href="#i-wa"/></svg>Consultanos por WhatsApp
         </a>
-        <a class="btn-ghost" href="#como-funciona">See how it works ↓</a>
+        <a class="btn-ghost" href="#como-funciona">Ver cómo funciona ↓</a>
       </div>
-      <p class="cta-note"><svg aria-hidden="true"><use href="#i-check"/></svg>No forms: message us and our team will reply.</p>
-      <ul class="facts" aria-label="Included features">
-        <li>Schedules for each practitioner</li>
-        <li>WhatsApp reminders</li>
-        <li>No double bookings</li>
-        <li class="offer">Launch offer: from ARS 20,000/month</li>
+      <p class="cta-note"><svg aria-hidden="true"><use href="#i-check"/></svg>Sin formularios: nos escribís y te respondemos nosotros.</p>
+      <ul class="facts" aria-label="Incluye">
+        <li>Agenda por profesional</li>
+        <li>Recordatorios por WhatsApp</li>
+        <li>Sin turnos superpuestos</li>
+        <li class="offer">Oferta: desde $ 20.000/mes</li>
       </ul>
     </div>
 
@@ -670,31 +105,31 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
         <div class="screen">
           <div class="chat-head">
             <span class="avatar"><svg><use href="#i-cal"/></svg></span>
-            <span><b>Méndez Clinic</b><span class="chat-status" id="estado">online</span></span>
-            <button class="replay" type="button" id="repetir" hidden aria-label="Replay the conversation" title="Replay"><svg aria-hidden="true"><use href="#i-replay"/></svg></button>
+            <span><b>Consultorio Méndez</b><span class="chat-status" id="estado">en línea</span></span>
+            <button class="replay" type="button" id="repetir" hidden aria-label="Ver la charla de nuevo" title="Ver de nuevo"><svg aria-hidden="true"><use href="#i-replay"/></svg></button>
           </div>
-          <div class="chat" id="chat" aria-label="Example: a patient requests an appointment on WhatsApp and the bot books it">
-            <span class="day-tag">Today</span>
-            <div class="msg out" data-t="pac"><span>Hi! I would like to book a consultation with Dr. Méndez</span><time>21:47</time></div>
-            <div class="msg in" data-t="bot"><span>Hi! To book your appointment, could you tell me your full name?</span><time>21:47</time></div>
+          <div class="chat" id="chat" aria-label="Ejemplo: un paciente pide turno por WhatsApp y el bot se lo reserva">
+            <span class="day-tag">Hoy</span>
+            <div class="msg out" data-t="pac"><span>Hola! Quería un turno para consulta con la Dra. Méndez</span><time>21:47</time></div>
+            <div class="msg in" data-t="bot"><span>¡Hola! Para darte el turno, ¿me decís tu nombre y apellido?</span><time>21:47</time></div>
             <div class="msg out" data-t="pac"><span>Mateo Sosa</span><time>21:48</time></div>
-            <div class="msg in" data-t="bot"><span>Thanks, Mateo. Dr. Laura Méndez has openings on Thursday, October 15. Which time works best?</span>
+            <div class="msg in" data-t="bot"><span>Gracias, Mateo. La Dra. Laura Méndez tiene lugar el jueves 15/10. ¿Qué horario te queda mejor?</span>
               <div class="slots"><span class="is-picked">10:00</span><span>11:30</span><span>12:30</span></div><time>21:48</time></div>
             <div class="msg out" data-t="pac"><span>10:00</span><time>21:48</time></div>
-            <div class="msg in" data-t="bot" data-final><span>You’re booked for Thursday, October 15 at 10:00 with Dr. Laura Méndez. We’ll send a reminder the day before.</span><time>21:48</time></div>
+            <div class="msg in" data-t="bot" data-final><span>Listo, te reservé el jueves 15/10 a las 10:00 hs con la Dra. Laura Méndez. El día anterior te mandamos un recordatorio.</span><time>21:48</time></div>
           </div>
-          <div class="composer" aria-hidden="true"><span>Message</span><i></i></div>
+          <div class="composer" aria-hidden="true"><span>Mensaje</span><i></i></div>
         </div>
       </div>
 
-      <div class="agenda-card" aria-label="The clinic schedule with the new appointment">
-        <div class="toast" id="toast"><svg aria-hidden="true"><use href="#i-check"/></svg>Appointment booked by the bot</div>
-        <div class="ac-head"><b>Thursday, October 15</b><span>Dr. Laura Méndez · 4 appointments</span></div>
+      <div class="agenda-card" aria-label="La agenda del consultorio con el turno nuevo">
+        <div class="toast" id="toast"><svg aria-hidden="true"><use href="#i-check"/></svg>Turno agendado por el bot</div>
+        <div class="ac-head"><b>Jueves 15 de octubre</b><span>Dra. Laura Méndez · 4 turnos</span></div>
         <div class="ac-rows">
-          <div class="row"><span class="mono">09:30</span><span>Facundo Ríos <span class="chip ok">Confirmed</span><small>Consultation</small></span></div>
-          <div class="row is-new" id="nuevo"><span class="mono">10:00</span><span data-slot><span data-lleno>Mateo Sosa <span class="chip pend">Pending</span><small>Consultation · via WhatsApp</small></span></span></div>
-          <div class="row"><span class="mono">11:00</span><span>Lucía Benítez <span class="chip pend">Pending</span><small>Consultation</small></span></div>
-          <div class="row is-free"><span class="mono">11:30</span><span>Available</span></div>
+          <div class="row"><span class="mono">09:30</span><span>Facundo Ríos <span class="chip ok">Confirmado</span><small>Consulta</small></span></div>
+          <div class="row is-new" id="nuevo"><span class="mono">10:00</span><span data-slot><span data-lleno>Mateo Sosa <span class="chip pend">Pendiente</span><small>Consulta · por WhatsApp</small></span></span></div>
+          <div class="row"><span class="mono">11:00</span><span>Lucía Benítez <span class="chip pend">Pendiente</span><small>Consulta</small></span></div>
+          <div class="row is-free"><span class="mono">11:30</span><span>Libre</span></div>
         </div>
       </div>
     </div>
@@ -704,64 +139,64 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
 <section class="section" aria-labelledby="t-dolor">
   <div class="wrap">
     <div class="pains-intro">
-      <span class="eyebrow" style="color: var(--err-fg)">The problem</span>
-      <h2 class="h2" id="t-dolor">If your clinic runs on WhatsApp, this happens every day.</h2>
+      <span class="eyebrow" style="color: var(--err-fg)">El problema</span>
+      <h2 class="h2" id="t-dolor">Si tu consultorio vive en WhatsApp, esto te pasa todos los días.</h2>
     </div>
     <div class="pain-list">
 
       <article class="pain">
         <div class="pain-copy">
-          <span class="tag">Too many messages</span>
-          <h3>You handle hundreds of patients in the same inbox.</h3>
-          <p>New patients, confirmations, rescheduling, pricing questions. Everything lands on the same phone, and someone has to read and reply to every message.</p>
-          <p class="fix"><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>With SmartTurnos,</b> the bot handles routine questions and leaves your team the conversations that need a person.</span></p>
+          <span class="tag">Demasiados mensajes</span>
+          <h3>Atendés a cientos de personas por el mismo chat.</h3>
+          <p>Pacientes nuevos, confirmaciones, cambios de horario, preguntas por precios. Todo cae en el mismo celular y alguien lo tiene que leer y contestar uno por uno.</p>
+          <p class="fix"><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Con SmartTurnos,</b> el bot contesta lo de todos los días y te deja solo lo que necesita a una persona.</span></p>
         </div>
         <div class="pain-visual" aria-hidden="true">
-          <div class="inbox-head"><b>Chats</b><span class="badge">99+ unread</span></div>
+          <div class="inbox-head"><b>Chats</b><span class="badge">+99 sin leer</span></div>
           <div class="chats">
-            <div class="chat-row"><span class="av">+54</span><span><b>+54 9 351 482-1190</b><small>Hi, do you accept health insurance?</small></span><span class="meta">22:51<span class="badge">3</span></span></div>
-            <div class="chat-row"><span class="av">CH</span><span><b>Camila Herrera</b><small>Can you move my appointment to Friday?</small></span><span class="meta">22:40<span class="badge">2</span></span></div>
-            <div class="chat-row"><span class="av">+54</span><span><b>+54 9 351 377-0042</b><small>Hi! How much is a consultation?</small></span><span class="meta">22:12<span class="badge">1</span></span></div>
-            <div class="chat-row"><span class="av">JA</span><span><b>Julián Acosta</b><small>What time is my appointment tomorrow?</small></span><span class="meta">21:58<span class="badge">4</span></span></div>
-            <div class="chat-row"><span class="av">GO</span><span><b>Gabriela Ortiz</b><small>Hi! Do you have anything for Saturday?</small></span><span class="meta">21:30<span class="badge">1</span></span></div>
-            <div class="chat-row is-faded"><span class="av">+54</span><span><b>+54 9 351 610-5521</b><small>Hi, are you still taking bookings?</small></span><span class="meta">20:47<span class="badge">2</span></span></div>
+            <div class="chat-row"><span class="av">+54</span><span><b>+54 9 351 482-1190</b><small>Hola, ¿atienden por obra social?</small></span><span class="meta">22:51<span class="badge">3</span></span></div>
+            <div class="chat-row"><span class="av">CH</span><span><b>Camila Herrera</b><small>¿Me pasás el turno al viernes?</small></span><span class="meta">22:40<span class="badge">2</span></span></div>
+            <div class="chat-row"><span class="av">+54</span><span><b>+54 9 351 377-0042</b><small>Buenas! Quería saber precio de la consulta</small></span><span class="meta">22:12<span class="badge">1</span></span></div>
+            <div class="chat-row"><span class="av">JA</span><span><b>Julián Acosta</b><small>¿Mañana a qué hora era?</small></span><span class="meta">21:58<span class="badge">4</span></span></div>
+            <div class="chat-row"><span class="av">GO</span><span><b>Gabriela Ortiz</b><small>Hola!! ¿Tenés algo para el sábado?</small></span><span class="meta">21:30<span class="badge">1</span></span></div>
+            <div class="chat-row is-faded"><span class="av">+54</span><span><b>+54 9 351 610-5521</b><small>Hola, ¿siguen dando turnos?</small></span><span class="meta">20:47<span class="badge">2</span></span></div>
           </div>
         </div>
       </article>
 
       <article class="pain">
         <div class="pain-copy">
-          <span class="tag">Lost patients</span>
-          <h3>Every unanswered message is a patient who moves on.</h3>
-          <p>A patient who messages at night and gets no reply may have booked elsewhere by morning. You never hear about it, but you’ve lost that patient.</p>
-          <p class="fix"><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>With SmartTurnos,</b> the bot replies immediately, at any hour, and offers available times from your schedule.</span></p>
+          <span class="tag">Pacientes perdidos</span>
+          <h3>Cada mensaje sin respuesta es un paciente que se va.</h3>
+          <p>Quien escribe a la noche y no tiene respuesta, a la mañana ya sacó turno en otro lado. No te enterás, pero ese paciente lo perdiste.</p>
+          <p class="fix"><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Con SmartTurnos,</b> le contesta en el momento, a cualquier hora, y le ofrece horarios libres de tu agenda.</span></p>
         </div>
         <div class="pain-visual" aria-hidden="true">
           <div class="lost">
-            <div class="msg in"><span>Hi, do you have a consultation available this week?</span><time>22:14</time></div>
-            <span class="gap"><svg><use href="#i-alert"/></svg>11 h 26 min without a reply</span>
-            <div class="msg out"><span>Hi! Yes, Thursday at 10:00 is available. Does that work?</span><time>09:40 <span class="ticks">✓✓</span></time></div>
-            <div class="msg in"><span>Thanks, I already booked somewhere else.</span><time>09:52</time></div>
+            <div class="msg in"><span>Hola, ¿tenés turno esta semana para una consulta?</span><time>22:14</time></div>
+            <span class="gap"><svg><use href="#i-alert"/></svg>11 h 26 min sin respuesta</span>
+            <div class="msg out"><span>¡Hola! Sí, tengo el jueves a las 10:00. ¿Te sirve?</span><time>09:40 <span class="ticks">✓✓</span></time></div>
+            <div class="msg in"><span>Gracias, ya conseguí en otro lado.</span><time>09:52</time></div>
           </div>
         </div>
       </article>
 
       <article class="pain">
         <div class="pain-copy">
-          <span class="tag">Lost time</span>
-          <h3>Your whole day goes into answering your phone.</h3>
-          <p>You interrupt consultations to reply, answer messages over lunch, and keep confirming appointments at night. That’s time you can’t spend seeing patients or earning income.</p>
-          <p class="fix"><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>With SmartTurnos,</b> appointments are booked, reminders sent, and confirmations handled automatically. You just check the schedule.</span></p>
+          <span class="tag">Tiempo perdido</span>
+          <h3>Y tu día se va en el celular.</h3>
+          <p>Cortás la consulta para contestar, respondés en el almuerzo y a la noche seguís confirmando turnos. Son horas que no atendés a nadie y no cobrás.</p>
+          <p class="fix"><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Con SmartTurnos,</b> los turnos se dan, se recuerdan y se confirman solos. Vos mirás la agenda.</span></p>
         </div>
-        <div class="pain-visual" role="img" aria-label="An example day from 08:00 to 20:00: ten consultations and 24 interruptions to answer WhatsApp, many during a consultation.">
+        <div class="pain-visual" role="img" aria-label="Un día de ejemplo de 8 a 20: diez consultas y 24 interrupciones para contestar WhatsApp, muchas en medio de una consulta.">
           <div class="day" aria-hidden="true">
-            <div class="day-row"><span>Consultations</span><span class="day-track"><i class="c" style="left:4.17%;width:4.16%"></i><i class="c" style="left:8.33%;width:4.17%"></i><i class="c" style="left:16.67%;width:6.25%"></i><i class="c" style="left:25.0%;width:4.17%"></i><i class="c" style="left:29.17%;width:6.25%"></i><i class="c" style="left:50.0%;width:4.17%"></i><i class="c" style="left:58.33%;width:6.25%"></i><i class="c" style="left:66.67%;width:4.16%"></i><i class="c" style="left:75.0%;width:8.33%"></i><i class="c" style="left:87.5%;width:4.17%"></i></span></div>
+            <div class="day-row"><span>Consultas</span><span class="day-track"><i class="c" style="left:4.17%;width:4.16%"></i><i class="c" style="left:8.33%;width:4.17%"></i><i class="c" style="left:16.67%;width:6.25%"></i><i class="c" style="left:25.0%;width:4.17%"></i><i class="c" style="left:29.17%;width:6.25%"></i><i class="c" style="left:50.0%;width:4.17%"></i><i class="c" style="left:58.33%;width:6.25%"></i><i class="c" style="left:66.67%;width:4.16%"></i><i class="c" style="left:75.0%;width:8.33%"></i><i class="c" style="left:87.5%;width:4.17%"></i></span></div>
             <div class="day-row"><span>WhatsApp</span><span class="day-track"><i class="x" style="left:1.67%"></i><i class="x" style="left:6.53%"></i><i class="x" style="left:9.03%"></i><i class="x" style="left:11.25%"></i><i class="x" style="left:16.39%"></i><i class="x" style="left:19.44%"></i><i class="x" style="left:21.25%"></i><i class="x" style="left:26.94%"></i><i class="x" style="left:30.56%"></i><i class="x" style="left:34.03%"></i><i class="x" style="left:40.28%"></i><i class="x" style="left:43.06%"></i><i class="x" style="left:45.14%"></i><i class="x" style="left:51.67%"></i><i class="x" style="left:55.69%"></i><i class="x" style="left:61.11%"></i><i class="x" style="left:63.61%"></i><i class="x" style="left:68.06%"></i><i class="x" style="left:74.31%"></i><i class="x" style="left:79.17%"></i><i class="x" style="left:84.03%"></i><i class="x" style="left:88.89%"></i><i class="x" style="left:95.14%"></i><i class="x" style="left:98.61%"></i></span></div>
             <div class="day-axis"><span style="left:0">08</span><span style="left:25%">11</span><span style="left:50%">14</span><span style="left:75%">17</span><span style="left:100%">20</span></div>
             <div class="day-sum">
-              <span><b>24</b>times you picked up your phone</span>
-              <span class="k"><i style="background: var(--err-fg)"></i>Interruption</span>
-              <span class="k"><i style="background: color-mix(in oklch, var(--ink) 32%, var(--surface))"></i>Consultation</span>
+              <span><b>24</b>veces que agarraste el celular</span>
+              <span class="k"><i style="background: var(--err-fg)"></i>Interrupción</span>
+              <span class="k"><i style="background: color-mix(in oklch, var(--ink) 32%, var(--surface))"></i>Consulta</span>
             </div>
           </div>
         </div>
@@ -769,9 +204,9 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
     </div>
 
     <div class="pains-cta">
-      <p>SmartTurnos replies for you, <em>24 hours a day.</em></p>
-      <a class="btn-wa" data-wa data-wa-from="dolores" data-wa-msg="Hi! I would like to spend less time answering appointment requests. How does SmartTurnos work?" href="https://wa.me/5493794721825" target="_blank" rel="noopener">
-        <svg aria-hidden="true"><use href="#i-wa"/></svg>I want to try it
+      <p>SmartTurnos contesta por vos, <em>las 24 horas.</em></p>
+      <a class="btn-wa" data-wa data-wa-from="dolores" data-wa-msg="Hola! Quiero dejar de contestar turnos todo el día. ¿Cómo funciona SmartTurnos?" href="https://wa.me/5493794721825" target="_blank" rel="noopener">
+        <svg aria-hidden="true"><use href="#i-wa"/></svg>Quiero probarlo
       </a>
     </div>
   </div>
@@ -780,14 +215,14 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
 <section class="section" id="como-funciona" aria-labelledby="t-flujo" style="background: var(--sunk); border-block: 1px solid var(--line);">
   <div class="wrap">
     <div class="section-head">
-      <span class="eyebrow">How it works</span>
-      <h2 class="h2" id="t-flujo">An appointment from start to finish, without anyone picking up the phone.</h2>
+      <span class="eyebrow">Cómo funciona</span>
+      <h2 class="h2" id="t-flujo">Un turno, de punta a punta, sin que nadie atienda el teléfono.</h2>
     </div>
     <ol class="flow">
-      <li class="step"><span class="who">Patient</span><h3>Messages on WhatsApp</h3><p>They message your clinic’s number at any time. The bot recognizes existing patients by their phone number.</p></li>
-      <li class="step"><span class="who">Bot</span><h3>Offers available times</h3><p>It asks for their name and the service they need, then finds a slot within your opening hours without overlapping appointments.</p></li>
-      <li class="step"><span class="who">Schedule</span><h3>Books the appointment</h3><p>The appointment appears in the day’s schedule with its service, practitioner, and Pending status.</p></li>
-      <li class="step"><span class="who">Reminder</span><h3>Confirms attendance</h3><p>The patient receives a reminder before their appointment. They reply “yes” and its status changes to Confirmed.</p></li>
+      <li class="step"><span class="who">Paciente</span><h3>Escribe por WhatsApp</h3><p>Al número del consultorio, a la hora que sea. El bot lo reconoce por el teléfono si ya es paciente.</p></li>
+      <li class="step"><span class="who">Bot</span><h3>Ofrece horarios</h3><p>Pide nombre y servicio y busca lugar dentro de los horarios de atención, sin pisar otros turnos.</p></li>
+      <li class="step"><span class="who">Agenda</span><h3>Queda reservado</h3><p>El turno aparece en la agenda del día con servicio, profesional y estado Pendiente.</p></li>
+      <li class="step"><span class="who">Recordatorio</span><h3>Se confirma</h3><p>Antes del turno le llega un recordatorio. Contesta «sí» y pasa a Confirmado.</p></li>
     </ol>
   </div>
 </section>
@@ -795,16 +230,16 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
 <section class="section" id="funciones" aria-labelledby="t-func">
   <div class="wrap">
     <div class="section-head">
-      <span class="eyebrow">Features</span>
-      <h2 class="h2" id="t-func">Everything your front desk handles manually, in one place.</h2>
+      <span class="eyebrow">Funciones</span>
+      <h2 class="h2" id="t-func">Todo lo que tu recepción hace a mano, en un solo lugar.</h2>
     </div>
     <ul class="features">
-      <li><span class="ic"><svg aria-hidden="true"><use href="#i-wa"/></svg></span><div><h3>Appointment booking bot</h3><p>Replies on WhatsApp, offers available times, and books the appointment.</p></div></li>
-      <li><span class="ic"><svg aria-hidden="true"><use href="#i-bell"/></svg></span><div><h3>Automatic reminders</h3><p>The patient replies “yes” and the appointment is confirmed.</p></div></li>
-      <li><span class="ic"><svg aria-hidden="true"><use href="#i-cal"/></svg></span><div><h3>Schedules for each practitioner</h3><p>Day and week views with the status of every appointment.</p></div></li>
-      <li><span class="ic"><svg aria-hidden="true"><use href="#i-clock"/></svg></span><div><h3>Opening hours</h3><p>Appointments outside your opening hours cannot be booked manually or by the bot.</p></div></li>
-      <li><span class="ic"><svg aria-hidden="true"><use href="#i-tag"/></svg></span><div><h3>Services and pricing</h3><p>Duration, practitioner, and prices for cash or bank transfer payments.</p></div></li>
-      <li><span class="ic"><svg aria-hidden="true"><use href="#i-stack"/></svg></span><div><h3>No double bookings</h3><p>The system prevents overlapping appointments.</p></div></li>
+      <li><span class="ic"><svg aria-hidden="true"><use href="#i-wa"/></svg></span><div><h3>Bot que da turnos</h3><p>Responde por WhatsApp, ofrece horarios libres y reserva el turno.</p></div></li>
+      <li><span class="ic"><svg aria-hidden="true"><use href="#i-bell"/></svg></span><div><h3>Recordatorios automáticos</h3><p>El paciente contesta «sí» y el turno queda confirmado.</p></div></li>
+      <li><span class="ic"><svg aria-hidden="true"><use href="#i-cal"/></svg></span><div><h3>Agenda por profesional</h3><p>Vista de día y de semana, con el estado de cada turno.</p></div></li>
+      <li><span class="ic"><svg aria-hidden="true"><use href="#i-clock"/></svg></span><div><h3>Horarios de atención</h3><p>Fuera de horario no se dan turnos, ni a mano ni por el bot.</p></div></li>
+      <li><span class="ic"><svg aria-hidden="true"><use href="#i-tag"/></svg></span><div><h3>Servicios y precios</h3><p>Duración, profesional y precio en efectivo o transferencia.</p></div></li>
+      <li><span class="ic"><svg aria-hidden="true"><use href="#i-stack"/></svg></span><div><h3>Sin turnos superpuestos</h3><p>El sistema no deja dar dos turnos a la misma hora.</p></div></li>
     </ul>
   </div>
 </section>
@@ -813,17 +248,17 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
   <div class="wrap">
     <div class="demo-heading">
       <div>
-        <h2 class="h2" id="t-demo">Explore your next scheduling tool.</h2>
-        <p>Explore the sample clinic, find a patient, or create an appointment. Get a feel for using SmartTurnos.</p>
+        <h2 class="h2" id="t-demo">Entrá. Tocá. Probá tu próxima agenda.</h2>
+        <p>Navegá por el consultorio de ejemplo, buscá un paciente o creá un turno. Así se siente usar SmartTurnos.</p>
       </div>
-      <a class="demo-open" href="demo/" target="_blank" rel="noopener">Open demo in a new tab <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+      <a class="demo-open" href="demo/" target="_blank" rel="noopener">Abrir demo en otra pestaña <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
     </div>
     <figure class="shot">
       <div class="browser">
-        <div class="browser-bar" aria-hidden="true"><i></i><i></i><i></i><span>smartturnos / sample clinic</span></div>
-        <iframe class="demo-frame" src="demo/" title="Interactive SmartTurnos demo with fictional data" loading="lazy" sandbox="allow-scripts allow-forms" referrerpolicy="no-referrer" aria-describedby="t-captura"></iframe>
+        <div class="browser-bar" aria-hidden="true"><i></i><i></i><i></i><span>smartturnos / consultorio de ejemplo</span></div>
+        <iframe class="demo-frame" src="demo/" title="Demo interactiva de SmartTurnos con datos ficticios" loading="lazy" sandbox="allow-scripts allow-forms" referrerpolicy="no-referrer" aria-describedby="t-captura"></iframe>
       </div>
-      <figcaption id="t-captura">Interactive demo with fictional data. Changes last until you reset the demo; messages are not sent.</figcaption>
+      <figcaption id="t-captura">Demo interactiva con datos ficticios. Los cambios duran hasta que reinicies la demo; los mensajes no se envían.</figcaption>
     </figure>
   </div>
 </section>
@@ -831,35 +266,35 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
 <section class="section" aria-labelledby="t-control" style="background: var(--sunk); border-block: 1px solid var(--line);">
   <div class="wrap">
     <div class="roles-head">
-      <span class="eyebrow">You’re in control</span>
-      <h2 class="h2" id="t-control">The bot handles routine tasks. Your team handles what matters.</h2>
-      <p class="lede">Each conversation is in Bot or Human mode. When something needs a person, the bot hands the conversation to your team and flags it for attention.</p>
+      <span class="eyebrow">Vos tenés el control</span>
+      <h2 class="h2" id="t-control">El bot hace lo repetitivo. Tu equipo, lo que importa.</h2>
+      <p class="lede">Cada conversación está en modo Bot o Humano. Cuando el bot no tiene que resolver algo, pasa la charla a tu equipo y la marca para que la vean.</p>
     </div>
     <div class="roles">
       <article class="role bot">
-        <div class="role-top"><span class="ic"><svg aria-hidden="true"><use href="#i-wa"/></svg></span><div><h3>Handled by the bot</h3><small>Bot mode · 24 hours a day</small></div></div>
+        <div class="role-top"><span class="ic"><svg aria-hidden="true"><use href="#i-wa"/></svg></span><div><h3>Lo hace el bot</h3><small>Modo Bot · las 24 horas</small></div></div>
         <ul>
-          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Replies instantly</b>, at any time, every day.</span></li>
-          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Asks for the patient’s name and service</b> and recognizes your existing patients.</span></li>
-          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Offers available times and books appointments</b>, when enabled in Settings.</span></li>
-          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Sends reminders</b> and confirms the appointment when the patient replies “yes”.</span></li>
-          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Answers administrative questions</b> using the clinic information you provide.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Contesta al instante</b>, a cualquier hora y todos los días.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Pide nombre y servicio</b> y reconoce a los pacientes que ya tenés.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Ofrece horarios libres y reserva el turno</b>, si lo activás en Configuración.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Manda los recordatorios</b> y confirma el turno cuando el paciente contesta «sí».</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Responde dudas administrativas</b> con la información que cargues del consultorio.</span></li>
         </ul>
       </article>
       <article class="role team">
-        <div class="role-top"><span class="ic"><svg aria-hidden="true"><use href="#i-person"/></svg></span><div><h3>Handled by your team</h3><small>Human mode · when needed</small></div></div>
+        <div class="role-top"><span class="ic"><svg aria-hidden="true"><use href="#i-person"/></svg></span><div><h3>Lo hace tu equipo</h3><small>Modo Humano · cuando hace falta</small></div></div>
         <ul>
-          <li><svg aria-hidden="true"><use href="#i-person"/></svg><span><b>Rescheduling and cancellations.</b> The bot leaves existing bookings unchanged and flags the request for your team.</span></li>
-          <li><svg aria-hidden="true"><use href="#i-person"/></svg><span><b>Questions the bot cannot answer</b>, flagged as “Needs attention”.</span></li>
-          <li><svg aria-hidden="true"><use href="#i-person"/></svg><span><b>Any conversation you want to take over</b>: switch it to Human mode with one click.</span></li>
-          <li><svg aria-hidden="true"><use href="#i-person"/></svg><span><b>Deciding what the bot can do</b>: opening hours, services, and whether it books appointments automatically.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-person"/></svg><span><b>Cambios y cancelaciones.</b> El bot no toca un turno ya dado: avisa y deriva.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-person"/></svg><span><b>Lo que el bot no sabe contestar</b>, marcado como «Requiere atención».</span></li>
+          <li><svg aria-hidden="true"><use href="#i-person"/></svg><span><b>Cualquier charla que quieras tomar</b>: la pasás a Humano con un clic.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-person"/></svg><span><b>Decidir qué hace el bot</b>: horarios, servicios y si da turnos solo.</span></li>
         </ul>
       </article>
     </div>
-    <p class="always"><b>Always</b>
-      <span><svg aria-hidden="true"><use href="#i-shield"/></svg>Never gives medical advice</span>
-      <span><svg aria-hidden="true"><use href="#i-file-x"/></svg>Does not store medical records</span>
-      <span><svg aria-hidden="true"><use href="#i-qr"/></svg>Uses your number, linked via a QR code</span>
+    <p class="always"><b>Siempre</b>
+      <span><svg aria-hidden="true"><use href="#i-shield"/></svg>Nunca da consejos médicos</span>
+      <span><svg aria-hidden="true"><use href="#i-file-x"/></svg>No guarda historia clínica</span>
+      <span><svg aria-hidden="true"><use href="#i-qr"/></svg>Usa tu número, vinculado con un QR</span>
     </p>
   </div>
 </section>
@@ -867,11 +302,11 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
 <section class="section" aria-labelledby="t-quien">
   <div class="wrap">
     <div class="section-head">
-      <span class="eyebrow">Who it’s for</span>
-      <h2 class="h2" id="t-quien">Solo practices and clinics with multiple practitioners or locations.</h2>
+      <span class="eyebrow">Para quién es</span>
+      <h2 class="h2" id="t-quien">Consultorios de uno o varios profesionales, en una o varias sedes.</h2>
     </div>
     <ul class="who-list">
-      <li>Physiotherapy</li><li>Dentistry</li><li>Aesthetic medicine</li><li>Psychology</li><li>Nutrition</li><li>General medicine</li><li>Speech therapy</li><li>Dermatology</li>
+      <li>Kinesiología</li><li>Odontología</li><li>Medicina estética</li><li>Psicología</li><li>Nutrición</li><li>Clínica médica</li><li>Fonoaudiología</li><li>Dermatología</li>
     </ul>
   </div>
 </section>
@@ -879,151 +314,52 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
 <section class="section" id="preguntas" aria-labelledby="t-faq" style="padding-top: 0;">
   <div class="wrap">
     <div class="section-head">
-      <span class="eyebrow">Frequently asked questions</span>
-      <h2 class="h2" id="t-faq">Common questions.</h2>
+      <span class="eyebrow">Preguntas frecuentes</span>
+      <h2 class="h2" id="t-faq">Lo que nos suelen preguntar.</h2>
     </div>
     <div class="faq">
-      <details open><summary>How much does it cost?</summary>
-        <p>Our current launch offer is <strong>ARS 20,000–50,000 per month</strong>, depending on usage (practitioners, locations, and message volume). <a data-wa data-wa-from="faq-precio" data-wa-msg="Hi! I would like to know how much SmartTurnos would cost for my clinic." href="https://wa.me/5493794721825" target="_blank" rel="noopener">Message us on WhatsApp</a> and we’ll give you a quote for your clinic.</p></details>
-      <details><summary>Do I need the official WhatsApp API or a separate provider?</summary>
-        <p>No. The bot connects to your clinic’s WhatsApp by scanning a QR code, just like WhatsApp Web. We recommend using a dedicated clinic number.</p></details>
-      <details><summary>Can the bot make a booking mistake?</summary>
-        <p>It only offers available slots within your opening hours, without overlapping appointments. Bookings start as Pending, just like manually entered appointments. If anything is unclear, it hands the conversation to a person.</p></details>
-      <details><summary>Can I still book appointments manually?</summary>
-        <p>Yes. The schedule works with or without the bot. You can create, reschedule, and cancel appointments from the dashboard, and send reminders with one click.</p></details>
-      <details><summary>Does it store patients’ clinical information?</summary>
-        <p>No. SmartTurnos stores contact details and administrative notes. Diagnoses, treatments, and medical records are deliberately excluded.</p></details>
-      <details><summary>Does it support multiple practitioners or locations?</summary>
-        <p>Yes. Each practitioner has their own schedule and opening hours, which can vary by location. Your front desk can see everything; administrators manage the settings.</p></details>
+      <details open><summary>¿Cuánto sale?</summary>
+        <p>Hoy está en oferta de lanzamiento: <strong>entre $ 20.000 y $ 50.000 por mes</strong>, según cuánto lo uses (profesionales, sedes y volumen de mensajes). <a data-wa data-wa-from="faq-precio" data-wa-msg="Hola! Quiero saber cuánto sale SmartTurnos para mi consultorio." href="https://wa.me/5493794721825" target="_blank" rel="noopener">Escribinos por WhatsApp</a> y te decimos cuál es el tuyo.</p></details>
+      <details><summary>¿Necesito la API oficial de WhatsApp o un proveedor aparte?</summary>
+        <p>No. El bot se vincula al WhatsApp del consultorio escaneando un QR, igual que WhatsApp Web. Te recomendamos usar un número dedicado al consultorio.</p></details>
+      <details><summary>¿El bot puede equivocarse con un turno?</summary>
+        <p>Solo ofrece horarios dentro de tus horarios de atención y que no se pisen con otros turnos. Los turnos que da quedan en Pendiente, como uno cargado a mano, y ante cualquier duda pasa la charla a una persona.</p></details>
+      <details><summary>¿Puedo seguir dando turnos yo, a mano?</summary>
+        <p>Sí. La agenda funciona igual con o sin bot. Podés cargar, reprogramar y cancelar turnos desde el panel, y mandar recordatorios con un clic.</p></details>
+      <details><summary>¿Guarda información clínica de los pacientes?</summary>
+        <p>No. SmartTurnos guarda datos de contacto y notas administrativas. Diagnósticos, tratamientos e historia clínica quedan afuera a propósito.</p></details>
+      <details><summary>¿Sirve si trabajamos varios profesionales o en varias sedes?</summary>
+        <p>Sí. Cada profesional tiene su agenda y su horario de atención, que puede ser distinto en cada sede. Recepción ve todo; la configuración la cambia quien administra.</p></details>
     </div>
   </div>
 </section>
 
 <section class="section closing" aria-labelledby="t-cierre">
   <div class="wrap">
-    <span class="eyebrow">Let’s talk</span>
-    <h2 class="h2" id="t-cierre">Tell us how you book appointments today.</h2>
-    <p class="lede">We’ll show you SmartTurnos in action and explore how it would work with your practitioners, services, and opening hours.</p>
-    <a class="btn-wa is-lg" data-wa data-wa-from="cierre" data-wa-msg="Hi! I would like to see how SmartTurnos would work for my clinic." href="https://wa.me/5493794721825" target="_blank" rel="noopener">
-      <svg aria-hidden="true"><use href="#i-wa"/></svg>Message us on WhatsApp
+    <span class="eyebrow">Hablemos</span>
+    <h2 class="h2" id="t-cierre">Contanos cómo das turnos hoy.</h2>
+    <p class="lede">Te mostramos SmartTurnos funcionando y vemos juntos cómo quedaría con tus profesionales, servicios y horarios.</p>
+    <a class="btn-wa is-lg" data-wa data-wa-from="cierre" data-wa-msg="Hola! Quiero ver cómo funcionaría SmartTurnos en mi consultorio." href="https://wa.me/5493794721825" target="_blank" rel="noopener">
+      <svg aria-hidden="true"><use href="#i-wa"/></svg>Escribinos por WhatsApp
     </a>
-    <p class="offer-note">Launch pricing: <b>ARS 20,000–50,000 per month</b> depending on usage.</p>
-    <p class="alt">or save our number: <span class="mono" data-wa-numero>+54 9 379 472-1825</span></p>
+    <p class="offer-note">Precio de lanzamiento: <b>entre $ 20.000 y $ 50.000 por mes</b> según el uso.</p>
+    <p class="alt">o agendá el número: <span class="mono" data-wa-numero>+54 9 379 472-1825</span></p>
   </div>
 </section>
 </main>
 
 <footer>
   <div class="wrap">
-    <span>SmartTurnos · Scheduling and reminders for clinics · smartturnos.com</span>
+    <span>SmartTurnos · Agenda y recordatorios para consultorios · smartturnos.com</span>
     <span>© 2026</span>
   </div>
 </footer>
 
 <div class="dock" id="dock">
-  <a class="btn-wa" data-wa data-wa-from="dock" data-wa-msg="Hi! I saw the SmartTurnos website and would like to learn more for my clinic." href="https://wa.me/5493794721825" target="_blank" rel="noopener">
-    <svg aria-hidden="true"><use href="#i-wa"/></svg>Chat with us on WhatsApp
+  <a class="btn-wa" data-wa data-wa-from="dock" data-wa-msg="Hola! Vi la web de SmartTurnos y quiero saber más para mi consultorio." href="https://wa.me/5493794721825" target="_blank" rel="noopener">
+    <svg aria-hidden="true"><use href="#i-wa"/></svg>Consultanos por WhatsApp
   </a>
 </div>
 
-<script>
-(function () {
-  var cfg = window.TURNOS || {};
-  var numero = String(cfg.whatsapp || "").replace(/\D/g, "");
-
-  // Links de WhatsApp: número + mensaje precargado, evento "Contact" para Meta
-  // y "whatsapp_click" para PostHog (con el botón en "boton").
-  document.querySelectorAll("[data-wa]").forEach(function (a) {
-    var msg = a.getAttribute("data-wa-msg") || "";
-    a.href = "https://wa.me/" + numero + (msg ? "?text=" + encodeURIComponent(msg) : "");
-    a.addEventListener("click", function () {
-      var boton = a.getAttribute("data-wa-from") || "web";
-      if (typeof window.fbq === "function") {
-        window.fbq("track", "Contact", { content_name: boton });
-      }
-      if (window.posthog && typeof window.posthog.capture === "function") {
-        window.posthog.capture("whatsapp_click", { boton: boton }, { transport: "sendBeacon" });
-      }
-    });
-  });
-
-  // Número visible, con formato argentino (+54 9 351 123-4567).
-  var m = numero.match(/^549(\d{3})(\d{3})(\d{4})$/);
-  document.querySelectorAll("[data-wa-numero]").forEach(function (el) {
-    el.textContent = m ? "+54 9 " + m[1] + " " + m[2] + "-" + m[3] : "+" + numero;
-  });
-
-  // Barra fija en el teléfono: aparece cuando el botón del hero sale de pantalla.
-  var dock = document.getElementById("dock");
-  var heroCta = document.querySelector(".hero .btn-wa");
-  var closing = document.querySelector(".closing");
-  var demoBrowser = document.querySelector("#demo .browser");
-  if ("IntersectionObserver" in window && dock && heroCta) {
-    var heroVisible = true, closingVisible = false, demoVisible = false;
-    var sync = function () { dock.classList.toggle("is-on", !heroVisible && !closingVisible && !demoVisible); };
-    new IntersectionObserver(function (e) { heroVisible = e[0].isIntersecting; sync(); }).observe(heroCta);
-    new IntersectionObserver(function (e) { closingVisible = e[0].isIntersecting; sync(); }).observe(closing);
-    if (demoBrowser) new IntersectionObserver(function (e) { demoVisible = e[0].isIntersecting; sync(); }).observe(demoBrowser);
-  }
-
-  // Escena del hero: la charla se reproduce una vez y el turno cae en la agenda.
-  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var chat = document.getElementById("chat");
-  var msgs = Array.prototype.slice.call(chat.querySelectorAll(".msg"));
-  var estado = document.getElementById("estado");
-  var nuevo = document.getElementById("nuevo");
-  var slot = nuevo.querySelector("[data-slot]");
-  var lleno = nuevo.querySelector("[data-lleno]");
-  var toast = document.getElementById("toast");
-  var repetir = document.getElementById("repetir");
-  var timers = [];
-  var libre = document.createElement("span");
-  libre.textContent = "Available";
-
-  function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
-  function setSlot(ocupado) {
-    nuevo.classList.toggle("is-free", !ocupado);
-    nuevo.classList.toggle("is-new", ocupado);
-    slot.replaceChildren(ocupado ? lleno : libre);
-  }
-  function play() {
-    timers.forEach(clearTimeout); timers = [];
-    repetir.hidden = true;
-    msgs.forEach(function (el) { el.hidden = true; el.classList.remove("is-entering"); });
-    setSlot(false);
-    toast.classList.add("is-hidden");
-    var t = 500;
-    msgs.forEach(function (el) {
-      var bot = el.getAttribute("data-t") === "bot";
-      if (bot) {
-        later(function () { estado.textContent = "typing…"; estado.classList.add("is-typing"); }, t);
-        t += 1300;
-      } else {
-        t += 900;
-      }
-      later(function () {
-        el.hidden = false; el.classList.add("is-entering");
-        estado.textContent = "online"; estado.classList.remove("is-typing");
-        if (el.hasAttribute("data-final")) {
-          later(function () {
-            setSlot(true); nuevo.classList.remove("flash"); void nuevo.offsetWidth; nuevo.classList.add("flash");
-            toast.classList.remove("is-hidden");
-          }, 450);
-          later(function () { repetir.hidden = false; }, 1400);
-        }
-      }, t);
-      t += 250;
-    });
-  }
-  repetir.addEventListener("click", play);
-
-  if (!reduce && "IntersectionObserver" in window) {
-    var started = false;
-    new IntersectionObserver(function (e, obs) {
-      if (e[0].isIntersecting && !started) { started = true; obs.disconnect(); play(); }
-    }, { threshold: 0.35 }).observe(document.getElementById("escena"));
-  }
-})();
-</script>
 </body>
 </html>

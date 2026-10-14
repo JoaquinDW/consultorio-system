@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SmartTurnos · Scheduling and WhatsApp for clinics</title>
+<meta name="description" content="SmartTurnos manages your clinic’s schedule, sends WhatsApp reminders, and uses a bot to answer patients, offer available times, and book appointments within your opening hours.">
+<meta name="theme-color" content="#0b1222">
+<link rel="canonical" href="https://smartturnos.com/en/">
+<link rel="alternate" hreflang="es-AR" href="https://smartturnos.com/">
+<link rel="alternate" hreflang="en" href="https://smartturnos.com/en/">
+<link rel="alternate" hreflang="x-default" href="https://smartturnos.com/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://smartturnos.com/en/">
+<meta property="og:site_name" content="SmartTurnos">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="SmartTurnos · Let appointments book themselves">
+<meta property="og:description" content="Scheduling, reminders, and a WhatsApp bot that books appointments for you. For solo practices and clinics with multiple practitioners.">
+<meta property="og:image" content="https://smartturnos.com/agenda-semana-en.webp">
+
+<!--
+  CONFIGURACIÓN
+  whatsapp: número con código de país, solo dígitos (ej. 5493511234567).
+            Número del consultorio (Corrientes).
+  pixelId:  ID del píxel de Meta. Vacío = no se carga nada.
+  posthog:  key pública del proyecto de PostHog (phc_…) y host de ingesta.
+            Key vacía = no se carga nada.
+-->
+<!-- Meta Pixel: se carga solo si hay pixelId. Cada clic a WhatsApp manda el evento estándar "Contact". -->
+<!-- PostHog: se carga solo si hay key. Registra las visitas ($pageview) y cada clic a WhatsApp como "whatsapp_click". -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,500..800&family=Geist+Mono:wght@400;500&family=Onest:wght@400;500;600&display=swap">
+
+<link rel="stylesheet" href="../landing.css">
+<script src="../landing.js" defer></script>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-wa" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.2a9.8 9.8 0 0 0-8.43 14.8L2.2 21.8l4.9-1.3A9.8 9.8 0 1 0 12 2.2Zm0 1.8a8 8 0 1 1-4.1 14.87l-.3-.18-2.9.77.78-2.83-.2-.31A8 8 0 0 1 12 4Zm-3.3 3.9c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.08c.15.2 2.08 3.17 5.03 4.45 2.46 1.06 2.96.85 3.5.8.53-.05 1.72-.7 1.96-1.38.24-.68.24-1.26.17-1.38-.07-.12-.27-.2-.56-.34-.3-.15-1.72-.85-1.99-.95-.27-.1-.46-.15-.66.15-.2.29-.76.94-.93 1.14-.17.2-.34.22-.63.07-.3-.15-1.24-.46-2.37-1.46-.87-.78-1.46-1.74-1.63-2.03-.17-.3-.02-.45.13-.6.13-.13.3-.34.44-.51.15-.17.2-.3.3-.49.1-.2.05-.37-.03-.51-.07-.15-.65-1.6-.9-2.18-.23-.57-.47-.49-.65-.5h-.55Z"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M8 2.5v4M16 2.5v4M3 9.5h18M9 15l2 2 4-4"/></g></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z"/></g></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></g></symbol>
+  <symbol id="i-replay" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.5V6L12 3Z"/></symbol>
+  <symbol id="i-person" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></g></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></g></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16ZM10 21h4"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></g></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9-9-9Z"/><circle cx="8" cy="8" r="1.5"/></g></symbol>
+  <symbol id="i-stack" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/></g></symbol>
+  <symbol id="i-file-x" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z"/><path d="M14 3v5h5M10 12l4 4M14 12l-4 4"/></g></symbol>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#" aria-label="SmartTurnos, home">
+      <span class="logo-mark"><svg><use href="#i-cal"/></svg></span>
+      <b><span>Smart</span>Turnos</b>
+    </a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#como-funciona">How it works</a>
+      <a href="#funciones">Features</a>
+      <a href="#preguntas">FAQs</a>
+    </nav>
+    <a class="btn-wa" data-wa data-wa-from="header" data-wa-msg="Hi! I saw the SmartTurnos website and would like to learn more for my clinic." href="https://wa.me/5493794721825" target="_blank" rel="noopener">
+      <svg aria-hidden="true"><use href="#i-wa"/></svg>Message us
+    </a>
+    <nav class="language-switch" aria-label="Language">
+      <a href="../" lang="es-AR" hreflang="es-AR" data-language-link>Español</a>
+      <a href="./" lang="en" hreflang="en" data-language-link aria-current="page">English</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="hero" aria-labelledby="titulo">
+  <div class="hours" aria-hidden="true">
+    <span>08:00</span><span>09:00</span><span>10:00</span><span>11:00</span><span>12:00</span><span>13:00</span><span>14:00</span><span>15:00</span><span>16:00</span><span>17:00</span><span>18:00</span><span>19:00</span>
+  </div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="pill"><i></i>Scheduling + WhatsApp for clinics</span>
+      <h1 id="titulo">Your patients already message you on WhatsApp. <em>Let appointments book themselves.</em></h1>
+      <p class="lede">Stop answering your phone all day. SmartTurnos <strong>replies to patients, books their appointments, and reminds them to attend</strong>, while you focus on patient care.</p>
+      <div class="cta-row">
+        <a class="btn-wa is-lg" data-wa data-wa-from="hero" data-wa-msg="Hi! I saw the SmartTurnos website and would like to learn more for my clinic." href="https://wa.me/5493794721825" target="_blank" rel="noopener">
+          <svg aria-hidden="true"><use href="#i-wa"/></svg>Chat with us on WhatsApp
+        </a>
+        <a class="btn-ghost" href="#como-funciona">See how it works ↓</a>
+      </div>
+      <p class="cta-note"><svg aria-hidden="true"><use href="#i-check"/></svg>No forms: message us and our team will reply.</p>
+      <ul class="facts" aria-label="Included features">
+        <li>Schedules for each practitioner</li>
+        <li>WhatsApp reminders</li>
+        <li>No double bookings</li>
+        <li class="offer">Launch offer: from ARS 20,000/month</li>
+      </ul>
+    </div>
+
+    <div class="stage" id="escena">
+      <div class="phone">
+        <div class="screen">
+          <div class="chat-head">
+            <span class="avatar"><svg><use href="#i-cal"/></svg></span>
+            <span><b>Méndez Clinic</b><span class="chat-status" id="estado">online</span></span>
+            <button class="replay" type="button" id="repetir" hidden aria-label="Replay the conversation" title="Replay"><svg aria-hidden="true"><use href="#i-replay"/></svg></button>
+          </div>
+          <div class="chat" id="chat" aria-label="Example: a patient requests an appointment on WhatsApp and the bot books it">
+            <span class="day-tag">Today</span>
+            <div class="msg out" data-t="pac"><span>Hi! I would like to book a consultation with Dr. Méndez</span><time>21:47</time></div>
+            <div class="msg in" data-t="bot"><span>Hi! To book your appointment, could you tell me your full name?</span><time>21:47</time></div>
+            <div class="msg out" data-t="pac"><span>Mateo Sosa</span><time>21:48</time></div>
+            <div class="msg in" data-t="bot"><span>Thanks, Mateo. Dr. Laura Méndez has openings on Thursday, October 15. Which time works best?</span>
+              <div class="slots"><span class="is-picked">10:00</span><span>11:30</span><span>12:30</span></div><time>21:48</time></div>
+            <div class="msg out" data-t="pac"><span>10:00</span><time>21:48</time></div>
+            <div class="msg in" data-t="bot" data-final><span>You’re booked for Thursday, October 15 at 10:00 with Dr. Laura Méndez. We’ll send a reminder the day before.</span><time>21:48</time></div>
+          </div>
+          <div class="composer" aria-hidden="true"><span>Message</span><i></i></div>
+        </div>
+      </div>
+
+      <div class="agenda-card" aria-label="The clinic schedule with the new appointment">
+        <div class="toast" id="toast"><svg aria-hidden="true"><use href="#i-check"/></svg>Appointment booked by the bot</div>
+        <div class="ac-head"><b>Thursday, October 15</b><span>Dr. Laura Méndez · 4 appointments</span></div>
+        <div class="ac-rows">
+          <div class="row"><span class="mono">09:30</span><span>Facundo Ríos <span class="chip ok">Confirmed</span><small>Consultation</small></span></div>
+          <div class="row is-new" id="nuevo"><span class="mono">10:00</span><span data-slot><span data-lleno>Mateo Sosa <span class="chip pend">Pending</span><small>Consultation · via WhatsApp</small></span></span></div>
+          <div class="row"><span class="mono">11:00</span><span>Lucía Benítez <span class="chip pend">Pending</span><small>Consultation</small></span></div>
+          <div class="row is-free"><span class="mono">11:30</span><span>Available</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="t-dolor">
+  <div class="wrap">
+    <div class="pains-intro">
+      <span class="eyebrow" style="color: var(--err-fg)">The problem</span>
+      <h2 class="h2" id="t-dolor">If your clinic runs on WhatsApp, this happens every day.</h2>
+    </div>
+    <div class="pain-list">
+
+      <article class="pain">
+        <div class="pain-copy">
+          <span class="tag">Too many messages</span>
+          <h3>You handle hundreds of patients in the same inbox.</h3>
+          <p>New patients, confirmations, rescheduling, pricing questions. Everything lands on the same phone, and someone has to read and reply to every message.</p>
+          <p class="fix"><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>With SmartTurnos,</b> the bot handles routine questions and leaves your team the conversations that need a person.</span></p>
+        </div>
+        <div class="pain-visual" aria-hidden="true">
+          <div class="inbox-head"><b>Chats</b><span class="badge">99+ unread</span></div>
+          <div class="chats">
+            <div class="chat-row"><span class="av">+54</span><span><b>+54 9 351 482-1190</b><small>Hi, do you accept health insurance?</small></span><span class="meta">22:51<span class="badge">3</span></span></div>
+            <div class="chat-row"><span class="av">CH</span><span><b>Camila Herrera</b><small>Can you move my appointment to Friday?</small></span><span class="meta">22:40<span class="badge">2</span></span></div>
+            <div class="chat-row"><span class="av">+54</span><span><b>+54 9 351 377-0042</b><small>Hi! How much is a consultation?</small></span><span class="meta">22:12<span class="badge">1</span></span></div>
+            <div class="chat-row"><span class="av">JA</span><span><b>Julián Acosta</b><small>What time is my appointment tomorrow?</small></span><span class="meta">21:58<span class="badge">4</span></span></div>
+            <div class="chat-row"><span class="av">GO</span><span><b>Gabriela Ortiz</b><small>Hi! Do you have anything for Saturday?</small></span><span class="meta">21:30<span class="badge">1</span></span></div>
+            <div class="chat-row is-faded"><span class="av">+54</span><span><b>+54 9 351 610-5521</b><small>Hi, are you still taking bookings?</small></span><span class="meta">20:47<span class="badge">2</span></span></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="pain">
+        <div class="pain-copy">
+          <span class="tag">Lost patients</span>
+          <h3>Every unanswered message is a patient who moves on.</h3>
+          <p>A patient who messages at night and gets no reply may have booked elsewhere by morning. You never hear about it, but you’ve lost that patient.</p>
+          <p class="fix"><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>With SmartTurnos,</b> the bot replies immediately, at any hour, and offers available times from your schedule.</span></p>
+        </div>
+        <div class="pain-visual" aria-hidden="true">
+          <div class="lost">
+            <div class="msg in"><span>Hi, do you have a consultation available this week?</span><time>22:14</time></div>
+            <span class="gap"><svg><use href="#i-alert"/></svg>11 h 26 min without a reply</span>
+            <div class="msg out"><span>Hi! Yes, Thursday at 10:00 is available. Does that work?</span><time>09:40 <span class="ticks">✓✓</span></time></div>
+            <div class="msg in"><span>Thanks, I already booked somewhere else.</span><time>09:52</time></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="pain">
+        <div class="pain-copy">
+          <span class="tag">Lost time</span>
+          <h3>Your whole day goes into answering your phone.</h3>
+          <p>You interrupt consultations to reply, answer messages over lunch, and keep confirming appointments at night. That’s time you can’t spend seeing patients or earning income.</p>
+          <p class="fix"><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>With SmartTurnos,</b> appointments are booked, reminders sent, and confirmations handled automatically. You just check the schedule.</span></p>
+        </div>
+        <div class="pain-visual" role="img" aria-label="An example day from 08:00 to 20:00: ten consultations and 24 interruptions to answer WhatsApp, many during a consultation.">
+          <div class="day" aria-hidden="true">
+            <div class="day-row"><span>Consultations</span><span class="day-track"><i class="c" style="left:4.17%;width:4.16%"></i><i class="c" style="left:8.33%;width:4.17%"></i><i class="c" style="left:16.67%;width:6.25%"></i><i class="c" style="left:25.0%;width:4.17%"></i><i class="c" style="left:29.17%;width:6.25%"></i><i class="c" style="left:50.0%;width:4.17%"></i><i class="c" style="left:58.33%;width:6.25%"></i><i class="c" style="left:66.67%;width:4.16%"></i><i class="c" style="left:75.0%;width:8.33%"></i><i class="c" style="left:87.5%;width:4.17%"></i></span></div>
+            <div class="day-row"><span>WhatsApp</span><span class="day-track"><i class="x" style="left:1.67%"></i><i class="x" style="left:6.53%"></i><i class="x" style="left:9.03%"></i><i class="x" style="left:11.25%"></i><i class="x" style="left:16.39%"></i><i class="x" style="left:19.44%"></i><i class="x" style="left:21.25%"></i><i class="x" style="left:26.94%"></i><i class="x" style="left:30.56%"></i><i class="x" style="left:34.03%"></i><i class="x" style="left:40.28%"></i><i class="x" style="left:43.06%"></i><i class="x" style="left:45.14%"></i><i class="x" style="left:51.67%"></i><i class="x" style="left:55.69%"></i><i class="x" style="left:61.11%"></i><i class="x" style="left:63.61%"></i><i class="x" style="left:68.06%"></i><i class="x" style="left:74.31%"></i><i class="x" style="left:79.17%"></i><i class="x" style="left:84.03%"></i><i class="x" style="left:88.89%"></i><i class="x" style="left:95.14%"></i><i class="x" style="left:98.61%"></i></span></div>
+            <div class="day-axis"><span style="left:0">08</span><span style="left:25%">11</span><span style="left:50%">14</span><span style="left:75%">17</span><span style="left:100%">20</span></div>
+            <div class="day-sum">
+              <span><b>24</b>times you picked up your phone</span>
+              <span class="k"><i style="background: var(--err-fg)"></i>Interruption</span>
+              <span class="k"><i style="background: color-mix(in oklch, var(--ink) 32%, var(--surface))"></i>Consultation</span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="pains-cta">
+      <p>SmartTurnos replies for you, <em>24 hours a day.</em></p>
+      <a class="btn-wa" data-wa data-wa-from="dolores" data-wa-msg="Hi! I would like to spend less time answering appointment requests. How does SmartTurnos work?" href="https://wa.me/5493794721825" target="_blank" rel="noopener">
+        <svg aria-hidden="true"><use href="#i-wa"/></svg>I want to try it
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="como-funciona" aria-labelledby="t-flujo" style="background: var(--sunk); border-block: 1px solid var(--line);">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">How it works</span>
+      <h2 class="h2" id="t-flujo">An appointment from start to finish, without anyone picking up the phone.</h2>
+    </div>
+    <ol class="flow">
+      <li class="step"><span class="who">Patient</span><h3>Messages on WhatsApp</h3><p>They message your clinic’s number at any time. The bot recognizes existing patients by their phone number.</p></li>
+      <li class="step"><span class="who">Bot</span><h3>Offers available times</h3><p>It asks for their name and the service they need, then finds a slot within your opening hours without overlapping appointments.</p></li>
+      <li class="step"><span class="who">Schedule</span><h3>Books the appointment</h3><p>The appointment appears in the day’s schedule with its service, practitioner, and Pending status.</p></li>
+      <li class="step"><span class="who">Reminder</span><h3>Confirms attendance</h3><p>The patient receives a reminder before their appointment. They reply “yes” and its status changes to Confirmed.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="section" id="funciones" aria-labelledby="t-func">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Features</span>
+      <h2 class="h2" id="t-func">Everything your front desk handles manually, in one place.</h2>
+    </div>
+    <ul class="features">
+      <li><span class="ic"><svg aria-hidden="true"><use href="#i-wa"/></svg></span><div><h3>Appointment booking bot</h3><p>Replies on WhatsApp, offers available times, and books the appointment.</p></div></li>
+      <li><span class="ic"><svg aria-hidden="true"><use href="#i-bell"/></svg></span><div><h3>Automatic reminders</h3><p>The patient replies “yes” and the appointment is confirmed.</p></div></li>
+      <li><span class="ic"><svg aria-hidden="true"><use href="#i-cal"/></svg></span><div><h3>Schedules for each practitioner</h3><p>Day and week views with the status of every appointment.</p></div></li>
+      <li><span class="ic"><svg aria-hidden="true"><use href="#i-clock"/></svg></span><div><h3>Opening hours</h3><p>Appointments outside your opening hours cannot be booked manually or by the bot.</p></div></li>
+      <li><span class="ic"><svg aria-hidden="true"><use href="#i-tag"/></svg></span><div><h3>Services and pricing</h3><p>Duration, practitioner, and prices for cash or bank transfer payments.</p></div></li>
+      <li><span class="ic"><svg aria-hidden="true"><use href="#i-stack"/></svg></span><div><h3>No double bookings</h3><p>The system prevents overlapping appointments.</p></div></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section" id="demo" aria-labelledby="t-demo" style="padding-top: 0;">
+  <div class="wrap">
+    <div class="demo-heading">
+      <div>
+        <h2 class="h2" id="t-demo">Explore your next scheduling tool.</h2>
+        <p>Explore the sample clinic, find a patient, or create an appointment. Get a feel for using SmartTurnos.</p>
+      </div>
+      <a class="demo-open" href="../demo/?lang=en" target="_blank" rel="noopener">Open demo in a new tab <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+    </div>
+    <figure class="shot">
+      <div class="browser">
+        <div class="browser-bar" aria-hidden="true"><i></i><i></i><i></i><span>smartturnos / sample clinic</span></div>
+        <iframe class="demo-frame" src="../demo/?lang=en" title="Interactive SmartTurnos demo with fictional data" loading="lazy" sandbox="allow-scripts allow-forms" referrerpolicy="no-referrer" aria-describedby="t-captura"></iframe>
+      </div>
+      <figcaption id="t-captura">Interactive demo with fictional data. Changes last until you reset the demo; messages are not sent.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="t-control" style="background: var(--sunk); border-block: 1px solid var(--line);">
+  <div class="wrap">
+    <div class="roles-head">
+      <span class="eyebrow">You’re in control</span>
+      <h2 class="h2" id="t-control">The bot handles routine tasks. Your team handles what matters.</h2>
+      <p class="lede">Each conversation is in Bot or Human mode. When something needs a person, the bot hands the conversation to your team and flags it for attention.</p>
+    </div>
+    <div class="roles">
+      <article class="role bot">
+        <div class="role-top"><span class="ic"><svg aria-hidden="true"><use href="#i-wa"/></svg></span><div><h3>Handled by the bot</h3><small>Bot mode · 24 hours a day</small></div></div>
+        <ul>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Replies instantly</b>, at any time, every day.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Asks for the patient’s name and service</b> and recognizes your existing patients.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Offers available times and books appointments</b>, when enabled in Settings.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Sends reminders</b> and confirms the appointment when the patient replies “yes”.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Answers administrative questions</b> using the clinic information you provide.</span></li>
+        </ul>
+      </article>
+      <article class="role team">
+        <div class="role-top"><span class="ic"><svg aria-hidden="true"><use href="#i-person"/></svg></span><div><h3>Handled by your team</h3><small>Human mode · when needed</small></div></div>
+        <ul>
+          <li><svg aria-hidden="true"><use href="#i-person"/></svg><span><b>Rescheduling and cancellations.</b> The bot leaves existing bookings unchanged and flags the request for your team.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-person"/></svg><span><b>Questions the bot cannot answer</b>, flagged as “Needs attention”.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-person"/></svg><span><b>Any conversation you want to take over</b>: switch it to Human mode with one click.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-person"/></svg><span><b>Deciding what the bot can do</b>: opening hours, services, and whether it books appointments automatically.</span></li>
+        </ul>
+      </article>
+    </div>
+    <p class="always"><b>Always</b>
+      <span><svg aria-hidden="true"><use href="#i-shield"/></svg>Never gives medical advice</span>
+      <span><svg aria-hidden="true"><use href="#i-file-x"/></svg>Does not store medical records</span>
+      <span><svg aria-hidden="true"><use href="#i-qr"/></svg>Uses your number, linked via a QR code</span>
+    </p>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="t-quien">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Who it’s for</span>
+      <h2 class="h2" id="t-quien">Solo practices and clinics with multiple practitioners or locations.</h2>
+    </div>
+    <ul class="who-list">
+      <li>Physiotherapy</li><li>Dentistry</li><li>Aesthetic medicine</li><li>Psychology</li><li>Nutrition</li><li>General medicine</li><li>Speech therapy</li><li>Dermatology</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section" id="preguntas" aria-labelledby="t-faq" style="padding-top: 0;">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Frequently asked questions</span>
+      <h2 class="h2" id="t-faq">Common questions.</h2>
+    </div>
+    <div class="faq">
+      <details open><summary>How much does it cost?</summary>
+        <p>Our current launch offer is <strong>ARS 20,000–50,000 per month</strong>, depending on usage (practitioners, locations, and message volume). <a data-wa data-wa-from="faq-precio" data-wa-msg="Hi! I would like to know how much SmartTurnos would cost for my clinic." href="https://wa.me/5493794721825" target="_blank" rel="noopener">Message us on WhatsApp</a> and we’ll give you a quote for your clinic.</p></details>
+      <details><summary>Do I need the official WhatsApp API or a separate provider?</summary>
+        <p>No. The bot connects to your clinic’s WhatsApp by scanning a QR code, just like WhatsApp Web. We recommend using a dedicated clinic number.</p></details>
+      <details><summary>Can the bot make a booking mistake?</summary>
+        <p>It only offers available slots within your opening hours, without overlapping appointments. Bookings start as Pending, just like manually entered appointments. If anything is unclear, it hands the conversation to a person.</p></details>
+      <details><summary>Can I still book appointments manually?</summary>
+        <p>Yes. The schedule works with or without the bot. You can create, reschedule, and cancel appointments from the dashboard, and send reminders with one click.</p></details>
+      <details><summary>Does it store patients’ clinical information?</summary>
+        <p>No. SmartTurnos stores contact details and administrative notes. Diagnoses, treatments, and medical records are deliberately excluded.</p></details>
+      <details><summary>Does it support multiple practitioners or locations?</summary>
+        <p>Yes. Each practitioner has their own schedule and opening hours, which can vary by location. Your front desk can see everything; administrators manage the settings.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="section closing" aria-labelledby="t-cierre">
+  <div class="wrap">
+    <span class="eyebrow">Let’s talk</span>
+    <h2 class="h2" id="t-cierre">Tell us how you book appointments today.</h2>
+    <p class="lede">We’ll show you SmartTurnos in action and explore how it would work with your practitioners, services, and opening hours.</p>
+    <a class="btn-wa is-lg" data-wa data-wa-from="cierre" data-wa-msg="Hi! I would like to see how SmartTurnos would work for my clinic." href="https://wa.me/5493794721825" target="_blank" rel="noopener">
+      <svg aria-hidden="true"><use href="#i-wa"/></svg>Message us on WhatsApp
+    </a>
+    <p class="offer-note">Launch pricing: <b>ARS 20,000–50,000 per month</b> depending on usage.</p>
+    <p class="alt">or save our number: <span class="mono" data-wa-numero>+54 9 379 472-1825</span></p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>SmartTurnos · Scheduling and reminders for clinics · smartturnos.com</span>
+    <span>© 2026</span>
+  </div>
+</footer>
+
+<div class="dock" id="dock">
+  <a class="btn-wa" data-wa data-wa-from="dock" data-wa-msg="Hi! I saw the SmartTurnos website and would like to learn more for my clinic." href="https://wa.me/5493794721825" target="_blank" rel="noopener">
+    <svg aria-hidden="true"><use href="#i-wa"/></svg>Chat with us on WhatsApp
+  </a>
+</div>
+
+</body>
+</html>
